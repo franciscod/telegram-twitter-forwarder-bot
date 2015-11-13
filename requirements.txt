@@ -1,0 +1,4 @@
+envparse==0.1.6
+future==0.15.2
+python-telegram-bot==2.9.2
+wheel==0.24.0
