@@ -92,16 +92,16 @@ https://twitter.com/{screen_name}/status/{id}
     def cmd_help(self, msg, args, chat=None):
 
         self.reply(msg, """
-            Hello! This bot is intended to forward you updates from twitter streams!
-            Here's the commands that work:
-                - /sub username -- subscribes to updates from twitter.com/username
-                - /unsub username -- unsubscribes to that user
-                - /list  -- lists your current subscriptions
-                - /wipe -- I remove all the data about you and your subscriptions
-                - /source -- info about source code
-            IMPORTANT: Tweets aren't streamed back yet! Stay tuned!
-            This bot is being worked on, so it may not work at 100%. Contact @franciscod if you feel chatty {}
-            """.format(Emoji.SMILING_FACE_WITH_OPEN_MOUTH_AND_SMILING_EYES), disable_web_page_preview=True)
+Hello! This bot is intended to forward you updates from twitter streams!
+Here's the commands that work:
+- /sub username -- subscribes to updates from twitter.com/username
+- /unsub username -- unsubscribes to that user
+- /list  -- lists your current subscriptions
+- /wipe -- I remove all the data about you and your subscriptions
+- /source -- info about source code
+IMPORTANT: Tweets aren't streamed back yet! Stay tuned!
+This bot is being worked on, so it may not work at 100%. Contact @franciscod if you feel chatty {}
+""".format(Emoji.SMILING_FACE_WITH_OPEN_MOUTH_AND_SMILING_EYES), disable_web_page_preview=True)
 
     @with_touched_chat
     def cmd_sub(self, msg, args, chat=None):
@@ -129,8 +129,8 @@ https://twitter.com/{screen_name}/status/{id}
         Subscription.create(tg_chat=chat, tw_user=tw_user)
 
         self.reply(msg, """
-            OK, I've added your subscription to {}!
-            Remember, you can check your subscription list with /list
+OK, I've added your subscription to {}!
+Remember, you can check your subscription list with /list
             """.format(tw_user.full_name))
 
     @with_touched_chat
@@ -191,7 +191,7 @@ https://twitter.com/{screen_name}/status/{id}
     @with_touched_chat
     def cmd_source(self, msg, args, chat=None):
         self.reply(msg, """
-            This bot is Free Software under the LGPLv3. You can get the code from here: https://github.com/franciscod/telegram-twitter-forwarder-bot
+This bot is Free Software under the LGPLv3. You can get the code from here: https://github.com/franciscod/telegram-twitter-forwarder-bot
             """)
 
     @with_touched_chat
