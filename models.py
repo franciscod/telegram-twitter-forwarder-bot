@@ -6,6 +6,7 @@ class TwitterUser(Model):
     screen_name = CharField(unique=True)
     known_at = DateTimeField(default=datetime.datetime.now)
     name = CharField()
+    last_tweet_id = BigIntegerField(default=0)
 
     @property
     def full_name(self):
@@ -28,10 +29,10 @@ class TelegramChat(Model):
 
 
 class Subscription(Model):
-    tg_chat = ForeignKeyField(TelegramChat, related_name="_subs")
-    tw_user = ForeignKeyField(TwitterUser, related_name="_subs")
+    tg_chat = ForeignKeyField(TelegramChat, related_name="subscriptions")
+    tw_user = ForeignKeyField(TwitterUser, related_name="subscriptions")
     known_at = DateTimeField(default=datetime.datetime.now)
-    last_id = BigIntegerField(default=0)
+    last_tweet_id = BigIntegerField(default=0)
 
 
 class Tweet(Model):
@@ -40,3 +41,10 @@ class Tweet(Model):
     text = TextField()
     created_at = DateTimeField()
     twitter_user = ForeignKeyField(TwitterUser, related_name='tweets')
+    @property
+    def screen_name(self):
+        return self.twitter_user.screen_name
+
+    @property
+    def name(self):
+        return self.twitter_user.name
