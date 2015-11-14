@@ -87,7 +87,7 @@ https://twitter.com/{screen_name}/status/{id}
 
     @with_touched_chat
     def cmd_start(self, msg, args, chat=None):
-        self.reply(msg, "Hello! I'm a work in progress bot for now! Check out /source for more info.")
+        self.reply(msg, "Hello! I'm a work in progress bot for now! Check out /help for more info.")
 
     @with_touched_chat
     def cmd_help(self, msg, args, chat=None):
