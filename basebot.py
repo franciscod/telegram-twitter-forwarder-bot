@@ -1,3 +1,4 @@
+import urllib.error
 import logging
 import telegram
 
@@ -23,7 +24,14 @@ class BaseBot(object):
     def poll(self):
         got_something = False
 
-        for u in self.tg.getUpdates(offset=self.update_offset, timeout=self.POLL_TIMEOUT):
+        while True:
+            try:
+                upds = self.tg.getUpdates(offset=self.update_offset, timeout=self.POLL_TIMEOUT)
+                break
+            except (telegram.error.TelegramError, urllib.error.URLError):
+                self.logger.debug("Network error while polling, retrying...")
+
+        for u in upds:
             self.queue.put(u)
             got_something = True
 
