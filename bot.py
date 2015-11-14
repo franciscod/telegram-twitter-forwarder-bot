@@ -48,7 +48,13 @@ https://twitter.com/{screen_name}/status/{id}
 
 if __name__ == '__main__':
     auth = tweepy.OAuthHandler(env('TWITTER_CONSUMER_KEY'), env('TWITTER_CONSUMER_SECRET'))
-    auth.set_access_token(env('TWITTER_ACCESS_TOKEN'), env('TWITTER_ACCESS_TOKEN_SECRET'))
+
+    try:
+        auth.set_access_token(env('TWITTER_ACCESS_TOKEN'), env('TWITTER_ACCESS_TOKEN_SECRET'))
+    except KeyError:
+        print("Either TWITTER_ACCESS_TOKEN or TWITTER_ACCESS_TOKEN_SECRET environment variables are missing. " +
+              "Tweepy will be initialized in 'app-only' mode")
+
     twapi = tweepy.API(auth)
 
     bot = TwitterForwarderBot(env('TELEGRAM_BOT_TOKEN'), twapi)

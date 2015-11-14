@@ -2,6 +2,3 @@ venv/
 env/
 
 __pycache__/
-
-secrets.env
-
