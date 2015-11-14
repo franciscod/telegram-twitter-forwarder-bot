@@ -101,7 +101,7 @@ https://twitter.com/{screen_name}/status/{id}
                 - /wipe -- I remove all the data about you and your subscriptions
                 - /source -- info about source code
             IMPORTANT: Tweets aren't streamed back yet! Stay tuned!
-            This bot is being worked on, so it may not work at 100%. Contact @efede if you feel chatty {}
+            This bot is being worked on, so it may not work at 100%. Contact @franciscod if you feel chatty {}
             """.format(Emoji.SMILING_FACE_WITH_OPEN_MOUTH_AND_SMILING_EYES), disable_web_page_preview=True)
 
     @with_touched_chat
