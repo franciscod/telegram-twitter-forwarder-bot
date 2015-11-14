@@ -8,6 +8,7 @@ from telegram.emoji import Emoji
 from basebot import BaseBot
 from models import TwitterUser, Tweet, TelegramChat, Subscription
 
+from random import sample
 
 env = Env(
     TWITTER_CONSUMER_KEY=str,
@@ -35,15 +36,37 @@ class TwitterForwarderBot(BaseBot):
 {text}
 
 {name} ({screen_name}) @ {created_at}
-https://twitter.com/{screen_name}/status/{id}
+https://twitter.com/{screen_name}/status/{tw_id}
 """
             .format(
                 text=tweet.text,
-                name=tweet.user.name,
-                screen_name=tweet.user.screen_name,
+                name=tweet.name,
+                screen_name=tweet.screen_name,
                 created_at=tweet.created_at,
-                id=tweet.id,
+                tw_id=tweet.tw_id,
             ))
+
+    def send_a_tweet(self, msg, tw_username):
+        tw_user = self.get_tw_user(tw_username)
+
+        if tw_user is None:
+            return
+
+        try:
+            tweets = self.tw.user_timeline(screen_name=tw_username, count=1)
+        except tweepy.error.TweepError:
+            self.reply(msg, "Whoops, I couldn't get tweets from {}!".format(tw_username))
+
+        for tweet in tweets:
+
+            tw, _created = Tweet.get_or_create(
+                tw_id=tweet.id,
+                text=tweet.text,
+                created_at=tweet.created_at,
+                twitter_user=tw_user,
+            )
+
+            self.send_tweet(msg, tw)
 
     def get_chat(self, tg_chat):
         db_chat, _created = TelegramChat.get_or_create(
@@ -196,10 +219,15 @@ This bot is Free Software under the LGPLv3. You can get the code from here: http
 
     @with_touched_chat
     def handle_chat(self, msg, chat=None):
-        self.reply(msg, "Okay, okay! Have a tweet:")
+        tw_usernames = [s.tw_user.screen_name for s in chat.subscriptions]
 
-        for tweet in self.tw.user_timeline(screen_name='twitter', count=1):
-            self.send_tweet(msg, tweet)
+        if not tw_usernames:
+            tw_usernames = ['twitter']
+            self.reply(msg, "Okay, let me get a tweet for you from twitter's account")
+        else:
+            self.reply(msg, "Okay, let me get a tweet for you from a random subscription")
+
+        self.send_a_tweet(msg, sample(tw_usernames, 1)[0])
 
 
 if __name__ == '__main__':
