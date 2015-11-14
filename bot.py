@@ -4,7 +4,7 @@ import tweepy
 from envparse import Env
 
 from basebot import BaseBot
-from telegram import emoji
+from telegram.emoji import Emoji
 
 from models import TwitterUser, Tweet, TelegramChat
 
@@ -102,7 +102,7 @@ https://twitter.com/{screen_name}/status/{id}
                 - /source -- info about source code
             IMPORTANT: Tweets aren't streamed back yet! Stay tuned!
             This bot is being worked on, so it may not work at 100%. Contact @efede if you feel chatty {}
-            """.format(emoji.SMILING_FACE_WITH_OPEN_MOUTH_AND_SMILING_EYES), disable_web_page_preview=True)
+            """.format(Emoji.SMILING_FACE_WITH_OPEN_MOUTH_AND_SMILING_EYES), disable_web_page_preview=True)
 
     @with_touched_chat
     def cmd_sub(self, msg, args, chat=None):
