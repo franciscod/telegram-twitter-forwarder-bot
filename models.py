@@ -1,6 +1,5 @@
 import datetime
 from peewee import Model, DateTimeField, ForeignKeyField, BigIntegerField, CharField, IntegerField, TextField
-from playhouse.fields import ManyToManyField
 
 
 class TwitterUser(Model):
@@ -18,7 +17,6 @@ class TelegramChat(Model):
     known_at = DateTimeField(default=datetime.datetime.now)
     tg_type = CharField()
     last_contact = DateTimeField(default=datetime.datetime.now)
-    subscriptions = ManyToManyField(TwitterUser, related_name="subscriptions")
 
     @property
     def is_group(self):
@@ -27,6 +25,13 @@ class TelegramChat(Model):
     def touch_contact(self):
         self.last_contact = datetime.datetime.now()
         self.save()
+
+
+class Subscription(Model):
+    tg_chat = ForeignKeyField(TelegramChat, related_name="_subs")
+    tw_user = ForeignKeyField(TwitterUser, related_name="_subs")
+    known_at = DateTimeField(default=datetime.datetime.now)
+    last_id = BigIntegerField(default=0)
 
 
 class Tweet(Model):

@@ -6,7 +6,7 @@ from envparse import Env
 from telegram.emoji import Emoji
 
 from basebot import BaseBot
-from models import TwitterUser, Tweet, TelegramChat
+from models import TwitterUser, Tweet, TelegramChat, Subscription
 
 
 env = Env(
@@ -24,9 +24,7 @@ class TwitterForwarderBot(BaseBot):
 
         self.tw = tweepy_api_object
 
-        for t in (TwitterUser, TelegramChat, Tweet,
-                  TelegramChat.subscriptions.get_through_model(),
-                  ):
+        for t in (TwitterUser, TelegramChat, Tweet, Subscription):
             t.create_table(fail_silently=True)
 
     def send_tweet(self, msg, tweet):
@@ -120,13 +118,15 @@ https://twitter.com/{screen_name}/status/{id}
             ))
             return
 
-        if tw_user in chat.subscriptions:
+        if Subscription.select().where(
+                Subscription.tw_user == tw_user,
+                Subscription.tg_chat == chat).count() == 1:
             self.reply(msg, "You're already subscribed to {}!".format(
                 tw_username
             ))
             return
 
-        chat.subscriptions.add(tw_user)
+        Subscription.create(tg_chat=chat, tw_user=tw_user)
 
         self.reply(msg, """
             OK, I've added your subscription to {}!
@@ -142,23 +142,29 @@ https://twitter.com/{screen_name}/status/{id}
 
         tw_user = self.get_tw_user(tw_username)
 
-        subs = chat.subscriptions
-        if tw_user is None or subs.count() == 0:
+        if tw_user is None or Subscription.select().where(
+                Subscription.tw_user == tw_user,
+                Subscription.tg_chat == chat).count() == 0:
             self.reply(msg, "I didn't found any subscription to {}!".format(tw_username))
             return
 
-        subs.remove(tw_user)
+        Subscription.delete().where(
+            Subscription.tw_user == tw_user,
+            Subscription.tg_chat == chat).execute()
 
         self.reply(msg, "You are no longer subscribed to {}".format(tw_user.full_name))
 
     @with_touched_chat
     def cmd_list(self, msg, args, chat=None):
-        if chat.subscriptions.count() == 0:
+        subscriptions = list(Subscription.select().where(
+                Subscription.tg_chat == chat))
+
+        if len(subscriptions) == 0:
             return self.reply(msg, 'You have no subscriptions yet! Add one with /sub username')
 
         subs = ['']
-        for sub in chat.subscriptions:
-            subs.append(sub.full_name)
+        for sub in subscriptions:
+            subs.append(sub.tw_user.full_name)
 
         subject = "This group is" if chat.is_group else "You are"
 
@@ -169,11 +175,14 @@ https://twitter.com/{screen_name}/status/{id}
 
     @with_touched_chat
     def cmd_wipe(self, msg, args, chat=None):
+        subscriptions = list(Subscription.select().where(
+                Subscription.tg_chat == chat))
+
         subs = "You had no subscriptions."
-        if chat.subscriptions.count():
+        if subscriptions:
             subs = ''.join([
                 "For the record, you were subscribed to these users: ",
-                ', '.join((user.screen_name for user in chat.subscriptions)),
+                ', '.join((s.tw_user.screen_name for s in subscriptions)),
                 '.'])
 
         self.reply(msg, "Okay, I'm forgetting about this chat. " + subs + " Come back to me anytime you want. Goodbye!")
