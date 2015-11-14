@@ -1,12 +1,13 @@
+import logging
 from functools import wraps
 
 import tweepy
 from envparse import Env
-
-from basebot import BaseBot
 from telegram.emoji import Emoji
 
+from basebot import BaseBot
 from models import TwitterUser, Tweet, TelegramChat
+
 
 env = Env(
     TWITTER_CONSUMER_KEY=str,
@@ -193,6 +194,13 @@ https://twitter.com/{screen_name}/status/{id}
 
 
 if __name__ == '__main__':
+
+    logging.basicConfig(
+        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+        level=logging.WARNING)
+
+    logging.getLogger(TwitterForwarderBot.__name__).setLevel(logging.DEBUG)
+
     auth = tweepy.OAuthHandler(env('TWITTER_CONSUMER_KEY'), env('TWITTER_CONSUMER_SECRET'))
 
     try:
@@ -204,4 +212,5 @@ if __name__ == '__main__':
     twapi = tweepy.API(auth)
 
     bot = TwitterForwarderBot(env('TELEGRAM_BOT_TOKEN'), twapi)
+
     bot.kb_interruptable_loop()

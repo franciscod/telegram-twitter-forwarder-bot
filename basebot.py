@@ -12,9 +12,7 @@ class BaseBot(object):
 
     def __init__(self, token, update_offset=0):
 
-        logging.getLogger("telegram.bot").setLevel(logging.WARNING)
         self.logger = logging.getLogger(self.__class__.__name__)
-
         self.logger.info("Initializing")
 
         self.token = token
@@ -74,7 +72,7 @@ class BaseBot(object):
         try:
             handler = getattr(self, 'cmd_' + cmd)
         except AttributeError:
-            self.logger.warning('Command /' + cmd + ' not implemented.')
+            self.logger.debug('Command /' + cmd + ' not implemented.')
             return
 
         handler(msg, args)
@@ -104,10 +102,6 @@ class BaseBot(object):
         self.run = False
 
     def kb_interruptable_loop(self):
-        logging.basicConfig(
-            format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-            level=logging.DEBUG)
-
         try:
             self.loop()
         except KeyboardInterrupt:
