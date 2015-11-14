@@ -1,6 +1,8 @@
 import urllib.error
 import logging
 import telegram
+import time
+
 
 try:
     from queue import Queue
@@ -30,6 +32,7 @@ class BaseBot(object):
                 break
             except (telegram.error.TelegramError, urllib.error.URLError):
                 self.logger.debug("Network error while polling, retrying...")
+                time.sleep(1)
 
         for u in upds:
             self.queue.put(u)
