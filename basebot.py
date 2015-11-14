@@ -8,7 +8,7 @@ except ImportError:
 
 
 class BaseBot(object):
-    POLL_TIMEOUT = 1
+    POLL_TIMEOUT = 5
 
     def __init__(self, token, update_offset=0):
 
