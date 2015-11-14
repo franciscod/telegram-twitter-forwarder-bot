@@ -124,7 +124,9 @@ Here's the commands that work:
 - /source -- info about source code
 IMPORTANT: Tweets aren't streamed back yet! Stay tuned!
 This bot is being worked on, so it may not work at 100%. Contact @franciscod if you feel chatty {}
-""".format(Emoji.SMILING_FACE_WITH_OPEN_MOUTH_AND_SMILING_EYES), disable_web_page_preview=True)
+""".format(
+            Emoji.SMILING_FACE_WITH_OPEN_MOUTH_AND_SMILING_EYES),
+            disable_web_page_preview=True)
 
     @with_touched_chat
     def cmd_sub(self, msg, args, chat=None):
@@ -180,7 +182,7 @@ Remember, you can check your subscription list with /list
     @with_touched_chat
     def cmd_list(self, msg, args, chat=None):
         subscriptions = list(Subscription.select().where(
-                Subscription.tg_chat == chat))
+                             Subscription.tg_chat == chat))
 
         if len(subscriptions) == 0:
             return self.reply(msg, 'You have no subscriptions yet! Add one with /sub username')
@@ -199,7 +201,7 @@ Remember, you can check your subscription list with /list
     @with_touched_chat
     def cmd_wipe(self, msg, args, chat=None):
         subscriptions = list(Subscription.select().where(
-                Subscription.tg_chat == chat))
+                             Subscription.tg_chat == chat))
 
         subs = "You had no subscriptions."
         if subscriptions:
@@ -208,14 +210,15 @@ Remember, you can check your subscription list with /list
                 ', '.join((s.tw_user.screen_name for s in subscriptions)),
                 '.'])
 
-        self.reply(msg, "Okay, I'm forgetting about this chat. " + subs + " Come back to me anytime you want. Goodbye!")
+        self.reply(msg, "Okay, I'm forgetting about this chat. " + subs +
+                        " Come back to me anytime you want. Goodbye!")
         chat.delete_instance(recursive=True)
 
     @with_touched_chat
     def cmd_source(self, msg, args, chat=None):
-        self.reply(msg, """
-This bot is Free Software under the LGPLv3. You can get the code from here: https://github.com/franciscod/telegram-twitter-forwarder-bot
-            """)
+        self.reply(msg, "This bot is Free Software under the LGPLv3. "
+                        "You can get the code from here: "
+                        "https://github.com/franciscod/telegram-twitter-forwarder-bot")
 
     @with_touched_chat
     def handle_chat(self, msg, chat=None):
@@ -243,7 +246,8 @@ if __name__ == '__main__':
     try:
         auth.set_access_token(env('TWITTER_ACCESS_TOKEN'), env('TWITTER_ACCESS_TOKEN_SECRET'))
     except KeyError:
-        print("Either TWITTER_ACCESS_TOKEN or TWITTER_ACCESS_TOKEN_SECRET environment variables are missing. " +
+        print("Either TWITTER_ACCESS_TOKEN or TWITTER_ACCESS_TOKEN_SECRET "
+              "environment variables are missing. "
               "Tweepy will be initialized in 'app-only' mode")
 
     twapi = tweepy.API(auth)

@@ -1,5 +1,6 @@
 import datetime
-from peewee import Model, DateTimeField, ForeignKeyField, BigIntegerField, CharField, IntegerField, TextField
+from peewee import (Model, DateTimeField, ForeignKeyField, BigIntegerField, CharField,
+                    IntegerField, TextField)
 
 
 class TwitterUser(Model):
@@ -41,6 +42,7 @@ class Tweet(Model):
     text = TextField()
     created_at = DateTimeField()
     twitter_user = ForeignKeyField(TwitterUser, related_name='tweets')
+
     @property
     def screen_name(self):
         return self.twitter_user.screen_name
