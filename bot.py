@@ -1,22 +1,12 @@
-import logging
 from functools import wraps
 
 import tweepy
-from envparse import Env
 from telegram.emoji import Emoji
 
 from basebot import BaseBot
 from models import TwitterUser, Tweet, TelegramChat, Subscription
 
 from random import sample
-
-env = Env(
-    TWITTER_CONSUMER_KEY=str,
-    TWITTER_CONSUMER_SECRET=str,
-    TWITTER_ACCESS_TOKEN=str,
-    TWITTER_ACCESS_TOKEN_SECRET=str,
-    TELEGRAM_BOT_TOKEN=str,
-)
 
 
 class TwitterForwarderBot(BaseBot):
@@ -231,27 +221,3 @@ Remember, you can check your subscription list with /list
             self.reply(msg, "Okay, let me get a tweet for you from a random subscription")
 
         self.send_a_tweet(msg, sample(tw_usernames, 1)[0])
-
-
-if __name__ == '__main__':
-
-    logging.basicConfig(
-        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-        level=logging.WARNING)
-
-    logging.getLogger(TwitterForwarderBot.__name__).setLevel(logging.DEBUG)
-
-    auth = tweepy.OAuthHandler(env('TWITTER_CONSUMER_KEY'), env('TWITTER_CONSUMER_SECRET'))
-
-    try:
-        auth.set_access_token(env('TWITTER_ACCESS_TOKEN'), env('TWITTER_ACCESS_TOKEN_SECRET'))
-    except KeyError:
-        print("Either TWITTER_ACCESS_TOKEN or TWITTER_ACCESS_TOKEN_SECRET "
-              "environment variables are missing. "
-              "Tweepy will be initialized in 'app-only' mode")
-
-    twapi = tweepy.API(auth)
-
-    bot = TwitterForwarderBot(env('TELEGRAM_BOT_TOKEN'), twapi)
-
-    bot.kb_interruptable_loop()

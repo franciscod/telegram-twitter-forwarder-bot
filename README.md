@@ -23,7 +23,7 @@ So, big thanks to anyone who contributed on these projects! :D
 # create your virtualenv, activate it, etc
 pip install -r requirements.txt
 source secrets.env
-python bot.py
+python main.py
 ```
 
 #### secrets.env?? u wot m8?
