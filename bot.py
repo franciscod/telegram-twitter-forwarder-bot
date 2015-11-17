@@ -208,10 +208,7 @@ This bot is being worked on, so it may break sometimes. Contact @franciscod if y
 
         Subscription.create(tg_chat=chat, tw_user=tw_user)
 
-        self.reply(msg, """
-OK, I've added your subscription to {}!
-Remember, you can check your subscription list with /list
-            """.format(tw_user.full_name))
+        self.reply(msg, "OK, I've added your subscription to {}!".format(tw_user.full_name))
 
     @with_touched_chat
     def cmd_unsub(self, msg, args, chat=None):
