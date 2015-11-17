@@ -1,6 +1,7 @@
 envparse==0.1.6
 future==0.15.2
 oauthlib==1.0.3
+peewee==2.6.4
 python-telegram-bot==2.9.2
 requests==2.8.1
 requests-oauthlib==0.5.0
