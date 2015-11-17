@@ -156,7 +156,10 @@ class TwitterForwarderBot(BaseBot):
 
     @with_touched_chat
     def cmd_start(self, msg, args, chat=None):
-        self.reply(msg, "Hello! I'm a work in progress bot for now! Check out /help for more info.")
+        self.reply(
+            msg,
+            "Hello! This bot lets you subscribe to twitter accounts and receive their tweets here! "
+            "Check out /help for more info.")
 
     @with_touched_chat
     def cmd_help(self, msg, args, chat=None):
