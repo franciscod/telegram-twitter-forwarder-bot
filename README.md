@@ -19,9 +19,12 @@ So, big thanks to anyone who contributed on these projects! :D
 
 #### How do I run this?
 
+**The code is currently targeting Python 3.5**
 ```
 # clone this thing
 # create your virtualenv, activate it, etc
+# virtualenv -p python3 venv
+# . venv/bin/activate
 pip install -r requirements.txt
 source secrets.env
 python main.py
