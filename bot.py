@@ -125,8 +125,8 @@ New tweet by *{screen_name}* ([@{name}](https://twitter.com/{screen_name})) at {
 """
             .format(
                 text=escape_markdown(tweet.text),
-                name=tweet.name,
-                screen_name=tweet.screen_name,
+                name=escape_markdown(tweet.name),
+                screen_name=escape_markdown(tweet.screen_name),
                 created_at=tweet.created_at,
                 tw_id=tweet.tw_id,
             ),
