@@ -1,4 +1,5 @@
 # telegram-twitter-forwarder-bot
+![logo](logo/logo.png)
 
 Hello! This projects aims to make a [Telegram](https://telegram.org) bot that forwards [Twitter](https://twitter.com/) updates to people, groups, channels, or whatever Telegram comes up with!
 
