@@ -3,7 +3,7 @@
 
 Hello! This projects aims to make a [Telegram](https://telegram.org) bot that forwards [Twitter](https://twitter.com/) updates to people, groups, channels, or whatever Telegram comes up with!
 
-You can check it on Telegram: @TwitterForwarderBot
+You can check it on Telegram: [@TwitterForwarderBot](https://telegram.me/TwitterForwarderBot)
 
 #### Credit where credit is due
 
