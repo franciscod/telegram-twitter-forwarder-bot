@@ -56,6 +56,22 @@ class FetchAndSendTweetsJob(Job):
             self.logger.debug(
                 "Checking subscription {} {}".format(s.tg_chat.chat_id, s.tw_user.screen_name))
 
+            if s.last_tweet_id == 0:  # didn't receive any tweet yet
+                try:
+                    tw = (s.tw_user.tweets.select()
+                           .order_by(Tweet.tw_id.desc())
+                           .limit(1))[0]
+                    self.logger.debug("Sending tweet {}".format(s.tg_chat.chat_id))
+                    self.bot.send_tweet(s.tg_chat.chat_id, tw)
+
+                    # save the latest tweet sent on this subscription
+                    s.last_tweet_id = tw.tw_id
+                    s.save()
+                except IndexError:
+                    self.logger.debug("No tweets available yet on {}".format(s.tw_user.screen_name))
+
+                continue
+
             if s.tw_user.last_tweet_id > s.last_tweet_id:
                 self.logger.debug("Some fresh tweets here!")
                 for tw in (s.tw_user.tweets.select()
@@ -68,8 +84,9 @@ class FetchAndSendTweetsJob(Job):
                 # save the latest tweet sent on this subscription
                 s.last_tweet_id = s.tw_user.last_tweet_id
                 s.save()
-            else:
-                self.logger.debug("No new tweets here.")
+                continue
+
+            self.logger.debug("No new tweets here.")
 
 
 class TwitterForwarderBot(BaseBot):
