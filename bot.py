@@ -19,6 +19,10 @@ class FetchAndSendTweetsJob(Job):
         self.logger.debug("Fetching tweets...")
         # fetch the tw users' tweets
         for tw_user in TwitterUser.select():
+            if tw_user.subscriptions.count() == 0:
+                self.logger.debug(
+                    "Skipping {} because 0 subscriptions".format(tw_user.screen_name))
+                continue
 
             try:
                 if tw_user.last_tweet_id == 0:
