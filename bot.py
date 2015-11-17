@@ -284,7 +284,7 @@ This bot is being worked on, so it may break sometimes. Contact @franciscod if y
 
         for sub in subscriptions:
             tweet_text = sub.last_tweet.text if sub.last_tweet else "<no tweets yet>"
-            text += "\n {}: {}".format(sub.tw_user.screen_name, tweet_text)
+            text += "\n--- {}:\n{}".format(sub.tw_user.screen_name, tweet_text)
 
         self.reply(msg, text, disable_web_page_preview=True)
 
