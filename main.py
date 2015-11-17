@@ -1,7 +1,7 @@
 import logging
 import tweepy
 from envparse import Env
-from bot import TwitterForwarderBot
+from bot import TwitterForwarderBot, FetchAndSendTweetsJob
 from basebot import JobQueue
 
 env = Env(
@@ -20,6 +20,7 @@ if __name__ == '__main__':
 
     logging.getLogger(TwitterForwarderBot.__name__).setLevel(logging.DEBUG)
     logging.getLogger(JobQueue.__name__).setLevel(logging.DEBUG)
+    logging.getLogger(FetchAndSendTweetsJob.__name__).setLevel(logging.DEBUG)
 
     auth = tweepy.OAuthHandler(env('TWITTER_CONSUMER_KEY'), env('TWITTER_CONSUMER_SECRET'))
 

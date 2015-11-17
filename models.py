@@ -7,11 +7,17 @@ class TwitterUser(Model):
     screen_name = CharField(unique=True)
     known_at = DateTimeField(default=datetime.datetime.now)
     name = CharField()
-    last_tweet_id = BigIntegerField(default=0)
 
     @property
     def full_name(self):
         return "{} ({})".format(self.name, self.screen_name)
+
+    @property
+    def last_tweet_id(self):
+        if self.tweets.count() == 0:
+            return 0
+
+        return self.tweets.order_by(Tweet.tw_id.desc()).limit(1)[0].tw_id
 
 
 class TelegramChat(Model):

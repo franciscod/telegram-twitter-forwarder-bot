@@ -1,12 +1,75 @@
 from functools import wraps
+import logging
 
 import tweepy
 from telegram.emoji import Emoji
 
-from basebot import BaseBot
+from basebot import BaseBot, Job
 from models import TwitterUser, Tweet, TelegramChat, Subscription
 
-from random import sample
+
+class FetchAndSendTweetsJob(Job):
+    INTERVAL = 60
+
+    def __init__(self, bot):
+        self.bot = bot
+        self.logger = logging.getLogger(self.__class__.__name__)
+
+    def run(self):
+        self.logger.debug("Fetching tweets...")
+        # fetch the tw users' tweets
+        for tw_user in TwitterUser.select():
+
+            try:
+                if tw_user.last_tweet_id == 0:
+                    # get just the latest tweet
+                    self.logger.debug(
+                        "Fetching the latest tweet from {}".format(tw_user.screen_name))
+                    tweets = self.bot.tw.user_timeline(
+                        screen_name=tw_user.screen_name,
+                        count=1)
+                else:
+                    # get the fresh tweets
+                    self.logger.debug(
+                        "Fetching new tweets from {}".format(tw_user.screen_name))
+                    tweets = self.bot.tw.user_timeline(
+                        screen_name=tw_user.screen_name,
+                        since_id=tw_user.last_tweet_id)
+
+            except tweepy.error.TweepError:
+                self.logger.debug(
+                    "Whoops, I couldn't get tweets from {}!".format(tw_user.screen_name))
+                continue
+
+            for tweet in tweets:
+                self.logger.debug("Got tweet: {}".format(tweet.text))
+                tw, _created = Tweet.get_or_create(
+                    tw_id=tweet.id,
+                    text=tweet.text,
+                    created_at=tweet.created_at,
+                    twitter_user=tw_user,
+                )
+
+        # send the new tweets to subscribers
+        for s in Subscription.select():
+            # are there new tweets? send em all!
+            self.logger.debug(
+                "Checking subscription {} {}".format(s.tg_chat.chat_id, s.tw_user.screen_name))
+
+            if s.tw_user.last_tweet_id > s.last_tweet_id:
+                self.logger.debug("Some fresh tweets here!")
+                for tw in (s.tw_user.tweets.select()
+                            .where(Tweet.tw_id > s.last_tweet_id)
+                            .order_by(Tweet.tw_id.desc())
+                           ):
+                    self.logger.debug("Sending tweet {}".format(s.tg_chat.chat_id))
+                    self.bot.send_tweet(s.tg_chat.chat_id, tw)
+
+                # save the latest tweet sent on this subscription
+                s.last_tweet_id = s.tw_user.last_tweet_id
+                s.save()
+            else:
+                self.logger.debug("No new tweets here.")
 
 
 class TwitterForwarderBot(BaseBot):
@@ -14,18 +77,19 @@ class TwitterForwarderBot(BaseBot):
         super().__init__(token)
 
         self.tw = tweepy_api_object
+        self.job_queue.put(FetchAndSendTweetsJob(self))
 
         for t in (TwitterUser, TelegramChat, Tweet, Subscription):
             t.create_table(fail_silently=True)
 
-    def send_tweet(self, msg, tweet):
+    def send_tweet(self, chat_id, tweet):
         self.tg.sendMessage(
-            chat_id=msg.chat_id,
+            chat_id=chat_id,
             disable_web_page_preview=True,
             text="""
 {text}
 
-{name} ({screen_name}) @ {created_at}
+{name} ({screen_name}) @ {created_at} UTC
 https://twitter.com/{screen_name}/status/{tw_id}
 """
             .format(
@@ -35,28 +99,6 @@ https://twitter.com/{screen_name}/status/{tw_id}
                 created_at=tweet.created_at,
                 tw_id=tweet.tw_id,
             ))
-
-    def send_a_tweet(self, msg, tw_username):
-        tw_user = self.get_tw_user(tw_username)
-
-        if tw_user is None:
-            return
-
-        try:
-            tweets = self.tw.user_timeline(screen_name=tw_username, count=1)
-        except tweepy.error.TweepError:
-            self.reply(msg, "Whoops, I couldn't get tweets from {}!".format(tw_username))
-
-        for tweet in tweets:
-
-            tw, _created = Tweet.get_or_create(
-                tw_id=tweet.id,
-                text=tweet.text,
-                created_at=tweet.created_at,
-                twitter_user=tw_user,
-            )
-
-            self.send_tweet(msg, tw)
 
     def get_chat(self, tg_chat):
         db_chat, _created = TelegramChat.get_or_create(
@@ -105,15 +147,15 @@ https://twitter.com/{screen_name}/status/{tw_id}
     def cmd_help(self, msg, args, chat=None):
 
         self.reply(msg, """
-Hello! This bot is intended to forward you updates from twitter streams!
-Here's the commands that work:
-- /sub username -- subscribes to updates from twitter.com/username
-- /unsub username -- unsubscribes to that user
-- /list  -- lists your current subscriptions
-- /wipe -- I remove all the data about you and your subscriptions
-- /source -- info about source code
-IMPORTANT: Tweets aren't streamed back yet! Stay tuned!
-This bot is being worked on, so it may not work at 100%. Contact @franciscod if you feel chatty {}
+Hello! This bot forwards you updates from twitter streams!
+Here's the commands:
+- /sub - subscribes to updates from a user
+- /unsub - unsubscribes to a user
+- /list  - lists current subscriptions
+- /wipe - remove all the data about you and your subscriptions
+- /source - info about source code
+- /help - view help text
+This bot is being worked on, so it may break sometimes. Contact @franciscod if you want {}
 """.format(
             Emoji.SMILING_FACE_WITH_OPEN_MOUTH_AND_SMILING_EYES),
             disable_web_page_preview=True)
@@ -212,12 +254,4 @@ Remember, you can check your subscription list with /list
 
     @with_touched_chat
     def handle_chat(self, msg, chat=None):
-        tw_usernames = [s.tw_user.screen_name for s in chat.subscriptions]
-
-        if not tw_usernames:
-            tw_usernames = ['twitter']
-            self.reply(msg, "Okay, let me get a tweet for you from twitter's account")
-        else:
-            self.reply(msg, "Okay, let me get a tweet for you from a random subscription")
-
-        self.send_a_tweet(msg, sample(tw_usernames, 1)[0])
+        self.reply(msg, "Hey! use commands to talk with me, please!")
