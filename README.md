@@ -29,9 +29,9 @@ python main.py
 
 #### secrets.env?? u wot m8?
 
-First, you'll need a Telegram Bot Token, you can get it via BotFather [more info here](https://core.telegram.org/bots).
+First, you'll need a Telegram Bot Token, you can get it via BotFather ([more info here](https://core.telegram.org/bots)).
 
-Also, setting this up will need an Application-only authentication token from Twitter [more info here](https://dev.twitter.com/oauth/application-only). Optionally, you can provide a user access token and secret.
+Also, setting this up will need an Application-only authentication token from Twitter ([more info here](https://dev.twitter.com/oauth/application-only)). Optionally, you can provide a user access token and secret.
 
 You can get this by creating a Twitter App [here](https://apps.twitter.com/).
 
