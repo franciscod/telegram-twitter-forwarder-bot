@@ -7,6 +7,8 @@ from telegram.emoji import Emoji
 from basebot import BaseBot, Job
 from models import TwitterUser, Tweet, TelegramChat, Subscription
 
+import html
+
 
 class FetchAndSendTweetsJob(Job):
     INTERVAL = 60
@@ -49,7 +51,7 @@ class FetchAndSendTweetsJob(Job):
                 self.logger.debug("Got tweet: {}".format(tweet.text))
                 tw, _created = Tweet.get_or_create(
                     tw_id=tweet.id,
-                    text=tweet.text,
+                    text=html.unescape(tweet.text),
                     created_at=tweet.created_at,
                     twitter_user=tw_user,
                 )
