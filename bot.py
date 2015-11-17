@@ -105,9 +105,7 @@ class TwitterForwarderBot(BaseBot):
             disable_web_page_preview=True,
             text="""
 {text}
-
-{name} ({screen_name}) @ {created_at} UTC
-https://twitter.com/{screen_name}/status/{tw_id}
+--- {name} ({screen_name}) @ {created_at} UTC - https://twitter.com/{screen_name}/status/{tw_id}
 """
             .format(
                 text=tweet.text,
