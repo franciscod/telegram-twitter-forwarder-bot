@@ -170,6 +170,7 @@ Here's the commands:
 - /sub - subscribes to updates from a user
 - /unsub - unsubscribes to a user
 - /list  - lists current subscriptions
+- /all - shows you the latest tweets from all subscriptions
 - /wipe - remove all the data about you and your subscriptions
 - /source - info about source code
 - /help - view help text
@@ -269,6 +270,22 @@ Remember, you can check your subscription list with /list
         self.reply(msg, "This bot is Free Software under the LGPLv3. "
                         "You can get the code from here: "
                         "https://github.com/franciscod/telegram-twitter-forwarder-bot")
+
+    @with_touched_chat
+    def cmd_all(self, msg, args, chat=None):
+        subscriptions = list(Subscription.select().where(
+                             Subscription.tg_chat == chat))
+
+        if len(subscriptions) == 0:
+            return self.reply(msg, 'You have no subscriptions, so no tweets to show!')
+
+        text = ""
+
+        for sub in subscriptions:
+            tweet_text = sub.last_tweet.text if sub.last_tweet else "<no tweets yet>"
+            text += "\n {}: {}".format(sub.tw_user.screen_name, tweet_text)
+
+        self.reply(msg, text)
 
     @with_touched_chat
     def handle_chat(self, msg, chat=None):

@@ -41,6 +41,13 @@ class Subscription(Model):
     known_at = DateTimeField(default=datetime.datetime.now)
     last_tweet_id = BigIntegerField(default=0)
 
+    @property
+    def last_tweet(self):
+        if self.last_tweet_id == 0:
+            return None
+
+        return Tweet.get(Tweet.tw_id == self.last_tweet_id)
+
 
 class Tweet(Model):
     tw_id = BigIntegerField(unique=True)
