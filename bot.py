@@ -3,6 +3,7 @@ import logging
 
 import tweepy
 from telegram.emoji import Emoji
+import telegram
 
 from basebot import BaseBot, Job
 from models import TwitterUser, Tweet, TelegramChat, Subscription
@@ -95,6 +96,13 @@ class FetchAndSendTweetsJob(Job):
             self.logger.debug("No new tweets here.")
 
 
+# Helper function to escape telegram markup symbols
+def escape_markdown(text):
+    text = text.replace('_', '\\_')
+    text = text.replace('*', '\\*')
+    return text
+
+
 class TwitterForwarderBot(BaseBot):
     def __init__(self, token, tweepy_api_object):
         super().__init__(token)
@@ -110,16 +118,19 @@ class TwitterForwarderBot(BaseBot):
             chat_id=chat_id,
             disable_web_page_preview=True,
             text="""
+New tweet by *{screen_name}* ([@{name}](https://twitter.com/{screen_name})) at {created_at} UTC:
 {text}
---- {name} ({screen_name}) @ {created_at} UTC - https://twitter.com/{screen_name}/status/{tw_id}
+---
+[Check on twitter](https://twitter.com/{screen_name}/status/{tw_id})
 """
             .format(
-                text=tweet.text,
+                text=escape_markdown(tweet.text),
                 name=tweet.name,
                 screen_name=tweet.screen_name,
                 created_at=tweet.created_at,
                 tw_id=tweet.tw_id,
-            ))
+            ),
+            parse_mode=telegram.ParseMode.MARKDOWN)
 
     def get_chat(self, tg_chat):
         db_chat, _created = TelegramChat.get_or_create(
