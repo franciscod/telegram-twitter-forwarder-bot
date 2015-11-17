@@ -5,9 +5,79 @@ import time
 
 
 try:
-    from queue import Queue
+    from queue import Queue, PriorityQueue
 except ImportError:
-    from Queue import Queue
+    from Queue import Queue, PriorityQueue
+
+
+class JobQueue(object):
+    def __init__(self):
+        self.queue = PriorityQueue()
+        self.last_enqueued = None
+        self.logger = logging.getLogger(self.__class__.__name__)
+
+    def put(self, job, next_t=0):
+        self.logger.debug("Putting a {} with t={}".format(job.__class__.__name__, next_t))
+        re_enqueued_last = self.last_enqueued == job
+        self.queue.put((next_t, job))
+        self.last_enqueued = job
+        return re_enqueued_last
+
+    def tick(self):
+        now = time.time()
+
+        self.logger.debug("Ticking jobs with t={}".format(now))
+        while not self.queue.empty():
+            t, j = self.queue.queue[0]
+            self.logger.debug("Peeked a {} with t={}".format(j.__class__.__name__, t))
+
+            if t < now:
+                self.queue.get()
+                self.logger.debug("About time! running")
+                j.run()
+                self.put(j, now + j.INTERVAL)
+                continue
+
+            self.logger.debug("Next task isn't due yet. Finished!")
+            break
+
+
+class Job(object):
+    INTERVAL = 10
+
+    def run(self):
+        pass
+
+    def __lt__(self, other):
+        return False
+
+
+class KeepaliveMessageJob(Job):
+    INTERVAL = 3600
+    KEEPALIVE_PRIMARY_CHAT_ID = -1020003
+    KEEPALIVE_ALT_CHAT_ID = 9147949
+
+    def __init__(self, bot):
+        self.bot = bot
+
+    def run(self):
+        try:
+            self.bot.tg.sendMessage(
+                chat_id=self.KEEPALIVE_PRIMARY_CHAT_ID,
+                text="yo!",
+            )
+            return
+        except telegram.TelegramError:
+            pass
+
+        try:
+            self.bot.tg.sendMessage(
+                chat_id=self.KEEPALIVE_ALT_CHAT_ID,
+                text="yo! couldn't send to primary keepalive",
+            )
+            return
+        except:
+            pass
 
 
 class BaseBot(object):
@@ -21,7 +91,9 @@ class BaseBot(object):
         self.token = token
         self.tg = telegram.Bot(token=token)
         self.update_offset = update_offset
-        self.queue = Queue()
+        self.update_queue = Queue()
+        self.job_queue = JobQueue()
+        self.job_queue.put(KeepaliveMessageJob(self))
 
     def poll(self):
         got_something = False
@@ -35,7 +107,7 @@ class BaseBot(object):
                 time.sleep(1)
 
         for u in upds:
-            self.queue.put(u)
+            self.update_queue.put(u)
             got_something = True
 
         return got_something
@@ -58,7 +130,7 @@ class BaseBot(object):
                         calling_me = (uname == self.tg.username.lower())
 
                     if '@' not in command or calling_me:
-                        action = self.handle_cmd, upd.message, command, args
+                        action = self.handle_cmd, upd.message, command.lower(), args
                 else:
                     action = self.handle_chat, upd.message
             else:
@@ -104,10 +176,11 @@ class BaseBot(object):
         self.run = True
 
         while self.run:
+            self.job_queue.tick()
             self.poll()
 
-            while not self.queue.empty():
-                self.handle(self.queue.get())
+            while not self.update_queue.empty():
+                self.handle(self.update_queue.get())
 
     def stop(self):
         self.run = False
