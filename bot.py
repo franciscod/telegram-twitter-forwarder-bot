@@ -304,10 +304,21 @@ This bot is being worked on, so it may break sometimes. Contact @franciscod if y
         text = ""
 
         for sub in subscriptions:
-            tweet_text = sub.last_tweet.text if sub.last_tweet else "<no tweets yet>"
-            text += "\n--- {}:\n{}".format(sub.tw_user.screen_name, tweet_text)
+            if sub.last_tweet is None:
+                text += "\n--- {screen_name}: <no tweets yet>".format(
+                    screen_name=escape_markdown(sub.tw_user.screen_name),
+                )
+            else:
+                text += ("\n--- {screen_name}:\n{text} "
+                         "[\(link\)](https://twitter.com/{screen_name}/status/{tw_id})").format(
+                    text=markdown_twitter_usernames(escape_markdown(sub.last_tweet.text)),
+                    tw_id=sub.last_tweet.tw_id,
+                    screen_name=escape_markdown(sub.tw_user.screen_name),
+                )
 
-        self.reply(msg, text, disable_web_page_preview=True)
+        self.reply(msg, text,
+                   disable_web_page_preview=True,
+                   parse_mode=telegram.ParseMode.MARKDOWN)
 
     @with_touched_chat
     def handle_chat(self, msg, chat=None):
