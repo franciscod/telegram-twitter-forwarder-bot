@@ -126,10 +126,10 @@ class TwitterForwarderBot(BaseBot):
             chat_id=chat_id,
             disable_web_page_preview=True,
             text="""
-New tweet by *{name}* ([@{screen_name}](https://twitter.com/{screen_name})) at {created_at} UTC:
+*{name}* ([@{screen_name}](https://twitter.com/{screen_name})) at {created_at} UTC:
 {text}
 ---
-[Check on twitter](https://twitter.com/{screen_name}/status/{tw_id})
+[\(link to this tweet\)](https://twitter.com/{screen_name}/status/{tw_id})
 """
             .format(
                 text=markdown_twitter_usernames(escape_markdown(tweet.text)),
