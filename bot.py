@@ -11,6 +11,7 @@ from models import TwitterUser, Tweet, TelegramChat, Subscription
 import html
 import re
 
+
 class FetchAndSendTweetsJob(Job):
     INTERVAL = 60
 
@@ -96,13 +97,14 @@ class FetchAndSendTweetsJob(Job):
             self.logger.debug("No new tweets here.")
 
 
-# Helper function to escape telegram markup symbols
 def escape_markdown(text):
+    "Helper function to escape telegram markup symbols"
     escape_chars = '\*_`\['
     return re.sub(r'([%s])' % escape_chars, r'\\\1', text)
 
+
 def markdown_twitter_usernames(text):
-    # restore escaped usernames and make them link to twitter
+    "Restore markdown escaped usernames and make them link to twitter"
     return re.sub(r'@([^\s]*)',
                   lambda s: '[@{username}](https://twitter.com/{username})'
                   .format(username=s.group(1).replace(r'\_', '_')),
