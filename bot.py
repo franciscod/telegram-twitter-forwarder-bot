@@ -9,7 +9,7 @@ from basebot import BaseBot, Job
 from models import TwitterUser, Tweet, TelegramChat, Subscription
 
 import html
-
+import re
 
 class FetchAndSendTweetsJob(Job):
     INTERVAL = 60
@@ -98,9 +98,15 @@ class FetchAndSendTweetsJob(Job):
 
 # Helper function to escape telegram markup symbols
 def escape_markdown(text):
-    text = text.replace('_', '\\_')
-    text = text.replace('*', '\\*')
-    return text
+    escape_chars = '\*_`\['
+    return re.sub(r'([%s])' % escape_chars, r'\\\1', text)
+
+def markdown_twitter_usernames(text):
+    # restore escaped usernames and make them link to twitter
+    return re.sub(r'@([^\s]*)',
+                  lambda s: '[@{username}](https://twitter.com/{username})'
+                  .format(username=s.group(1).replace(r'\_', '_')),
+                  text)
 
 
 class TwitterForwarderBot(BaseBot):
@@ -118,15 +124,15 @@ class TwitterForwarderBot(BaseBot):
             chat_id=chat_id,
             disable_web_page_preview=True,
             text="""
-New tweet by *{screen_name}* ([@{name}](https://twitter.com/{screen_name})) at {created_at} UTC:
+New tweet by *{name}* ([@{screen_name}](https://twitter.com/{screen_name})) at {created_at} UTC:
 {text}
 ---
 [Check on twitter](https://twitter.com/{screen_name}/status/{tw_id})
 """
             .format(
-                text=escape_markdown(tweet.text),
+                text=markdown_twitter_usernames(escape_markdown(tweet.text)),
                 name=escape_markdown(tweet.name),
-                screen_name=escape_markdown(tweet.screen_name),
+                screen_name=tweet.screen_name,
                 created_at=tweet.created_at,
                 tw_id=tweet.tw_id,
             ),
