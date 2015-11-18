@@ -126,7 +126,7 @@ class BaseBot(object):
                 if text[:1] == '/' and len(text) > 1:
                     command, *args = text[1:].split()
                     if '@' in command:
-                        command, uname = command.lower().split('@')
+                        command, uname, *_ = command.lower().split('@')
                         calling_me = (uname == self.tg.username.lower())
 
                     if '@' not in command or calling_me:
