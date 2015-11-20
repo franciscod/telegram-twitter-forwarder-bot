@@ -143,10 +143,15 @@ class TwitterForwarderBot(BaseBot):
                     tw_id=tweet.tw_id,
                 ),
                 parse_mode=telegram.ParseMode.MARKDOWN)
+
         except TelegramError as e:
             self.logger.info("Couldn't send tweet {} to chat {}: {}".format(
                 tweet.tw_id, chat.chat_id, e.message
             ))
+
+            if e.message == "Unauthorized":
+                self.logger.info("Deleting chat and it's linked objects")
+                chat.delete_instance(recursive=True)
 
     def get_chat(self, tg_chat):
         db_chat, _created = TelegramChat.get_or_create(
