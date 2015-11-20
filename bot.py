@@ -70,8 +70,7 @@ class FetchAndSendTweetsJob(Job):
                     tw = (s.tw_user.tweets.select()
                            .order_by(Tweet.tw_id.desc())
                            .limit(1))[0]
-                    self.logger.debug("Sending tweet {}".format(s.tg_chat.chat_id))
-                    self.bot.send_tweet(s.tg_chat.chat_id, tw)
+                    self.bot.send_tweet(s.tg_chat, tw)
 
                     # save the latest tweet sent on this subscription
                     s.last_tweet_id = tw.tw_id
@@ -87,8 +86,7 @@ class FetchAndSendTweetsJob(Job):
                             .where(Tweet.tw_id > s.last_tweet_id)
                             .order_by(Tweet.tw_id.desc())
                            ):
-                    self.logger.debug("Sending tweet {}".format(s.tg_chat.chat_id))
-                    self.bot.send_tweet(s.tg_chat.chat_id, tw)
+                    self.bot.send_tweet(s.tg_chat, tw)
 
                 # save the latest tweet sent on this subscription
                 s.last_tweet_id = s.tw_user.last_tweet_id
@@ -122,11 +120,14 @@ class TwitterForwarderBot(BaseBot):
         for t in (TwitterUser, TelegramChat, Tweet, Subscription):
             t.create_table(fail_silently=True)
 
-    def send_tweet(self, chat_id, tweet):
+    def send_tweet(self, chat, tweet):
         try:
+            self.logger.debug("Sending tweet {} to chat {}...".format(
+                tweet.tw_id, chat.chat_id
+            ))
 
             self.tg.sendMessage(
-                chat_id=chat_id,
+                chat_id=chat.chat_id,
                 disable_web_page_preview=True,
                 text="""
     *{name}* ([@{screen_name}](https://twitter.com/{screen_name})) at {created_at} UTC:
@@ -144,7 +145,7 @@ class TwitterForwarderBot(BaseBot):
                 parse_mode=telegram.ParseMode.MARKDOWN)
         except TelegramError as e:
             self.logger.info("Couldn't send tweet {} to chat {}: {}".format(
-                tweet.tw_id, chat_id, str(e)
+                tweet.tw_id, chat.chat_id, e.message
             ))
 
     def get_chat(self, tg_chat):
