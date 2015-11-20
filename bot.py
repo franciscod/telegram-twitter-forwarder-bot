@@ -132,8 +132,8 @@ class TwitterForwarderBot(BaseBot):
                 text="""
     *{name}* ([@{screen_name}](https://twitter.com/{screen_name})) at {created_at} UTC:
     {text}
-    ---
-    [(link to this tweet)](https://twitter.com/{screen_name}/status/{tw_id})
+
+    [link to this tweet](https://twitter.com/{screen_name}/status/{tw_id})
     """
                 .format(
                     text=markdown_twitter_usernames(escape_markdown(tweet.text)),
@@ -313,12 +313,12 @@ This bot is being worked on, so it may break sometimes. Contact @franciscod if y
 
         for sub in subscriptions:
             if sub.last_tweet is None:
-                text += "\n--- {screen_name}: <no tweets yet>".format(
+                text += "\n{screen_name}: <no tweets yet>".format(
                     screen_name=escape_markdown(sub.tw_user.screen_name),
                 )
             else:
-                text += ("\n--- {screen_name}:\n{text} "
-                         "[(link)](https://twitter.com/{screen_name}/status/{tw_id})").format(
+                text += ("\n{screen_name}:\n{text} "
+                         "[link](https://twitter.com/{screen_name}/status/{tw_id})").format(
                     text=markdown_twitter_usernames(escape_markdown(sub.last_tweet.text)),
                     tw_id=sub.last_tweet.tw_id,
                     screen_name=escape_markdown(sub.tw_user.screen_name),
