@@ -4,6 +4,7 @@ import logging
 import tweepy
 from telegram.emoji import Emoji
 import telegram
+from telegram import TelegramError
 
 from basebot import BaseBot, Job
 from models import TwitterUser, Tweet, TelegramChat, Subscription
@@ -122,23 +123,29 @@ class TwitterForwarderBot(BaseBot):
             t.create_table(fail_silently=True)
 
     def send_tweet(self, chat_id, tweet):
-        self.tg.sendMessage(
-            chat_id=chat_id,
-            disable_web_page_preview=True,
-            text="""
-*{name}* ([@{screen_name}](https://twitter.com/{screen_name})) at {created_at} UTC:
-{text}
----
-[(link to this tweet)](https://twitter.com/{screen_name}/status/{tw_id})
-"""
-            .format(
-                text=markdown_twitter_usernames(escape_markdown(tweet.text)),
-                name=escape_markdown(tweet.name),
-                screen_name=tweet.screen_name,
-                created_at=tweet.created_at,
-                tw_id=tweet.tw_id,
-            ),
-            parse_mode=telegram.ParseMode.MARKDOWN)
+        try:
+
+            self.tg.sendMessage(
+                chat_id=chat_id,
+                disable_web_page_preview=True,
+                text="""
+    *{name}* ([@{screen_name}](https://twitter.com/{screen_name})) at {created_at} UTC:
+    {text}
+    ---
+    [(link to this tweet)](https://twitter.com/{screen_name}/status/{tw_id})
+    """
+                .format(
+                    text=markdown_twitter_usernames(escape_markdown(tweet.text)),
+                    name=escape_markdown(tweet.name),
+                    screen_name=tweet.screen_name,
+                    created_at=tweet.created_at,
+                    tw_id=tweet.tw_id,
+                ),
+                parse_mode=telegram.ParseMode.MARKDOWN)
+        except TelegramError as e:
+            self.logger.info("Couldn't send tweet {} to chat {}: {}".format(
+                tweet.tw_id, chat_id, str(e)
+            ))
 
     def get_chat(self, tg_chat):
         db_chat, _created = TelegramChat.get_or_create(
