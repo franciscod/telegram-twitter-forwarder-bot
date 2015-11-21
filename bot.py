@@ -130,11 +130,10 @@ class TwitterForwarderBot(BaseBot):
                 chat_id=chat.chat_id,
                 disable_web_page_preview=True,
                 text="""
-    *{name}* ([@{screen_name}](https://twitter.com/{screen_name})) at {created_at} UTC:
-    {text}
-
-    [link to this tweet](https://twitter.com/{screen_name}/status/{tw_id})
-    """
+*{name}* ([@{screen_name}](https://twitter.com/{screen_name})) at {created_at} UTC:
+{text}
+-- [Link to this Tweet](https://twitter.com/{screen_name}/status/{tw_id})
+"""
                 .format(
                     text=markdown_twitter_usernames(escape_markdown(tweet.text)),
                     name=escape_markdown(tweet.name),
@@ -220,50 +219,86 @@ This bot is being worked on, so it may break sometimes. Contact @franciscod if y
     @with_touched_chat
     def cmd_sub(self, msg, args, chat=None):
         if len(args) < 1:
-            self.reply(msg, "Use /sub username")
+            self.reply(msg, "Use /sub username1 username2 username3...")
             return
-        tw_username = args[0]
+        tw_usernames = args
+        not_found = []
+        already_subscribed = []
+        successfully_subscribed = []
 
-        tw_user = self.get_tw_user(tw_username)
+        for tw_username in tw_usernames:
+            tw_user = self.get_tw_user(tw_username)
 
-        if tw_user is None:
-            self.reply(msg, "Sorry, I didn't found that username ({})!".format(
-                tw_username
-            ))
-            return
+            if tw_user is None:
+                not_found.append(tw_username)
+                continue
 
-        if Subscription.select().where(
-                Subscription.tw_user == tw_user,
-                Subscription.tg_chat == chat).count() == 1:
-            self.reply(msg, "You're already subscribed to {}!".format(
-                tw_username
-            ))
-            return
+            if Subscription.select().where(
+                    Subscription.tw_user == tw_user,
+                    Subscription.tg_chat == chat).count() == 1:
+                already_subscribed.append(tw_user.full_name)
+                continue
 
-        Subscription.create(tg_chat=chat, tw_user=tw_user)
+            Subscription.create(tg_chat=chat, tw_user=tw_user)
+            successfully_subscribed.append(tw_user.full_name)
 
-        self.reply(msg, "OK, I've added your subscription to {}!".format(tw_user.full_name))
+        reply = ""
+
+        if len(not_found) is not 0:
+            reply += "Sorry, I didn't find username{} {}\n\n".format(
+                         "" if len(not_found) is 1 else "s",
+                         ", ".join(not_found)
+                     )
+
+        if len(already_subscribed) is not 0:
+            reply += "You're already subscribed to {}\n\n".format(
+                         ", ".join(already_subscribed)
+                     )
+
+        if len(successfully_subscribed) is not 0:
+            reply += "I've added your subscription to {}".format(
+                         ", ".join(successfully_subscribed)
+                     )
+
+        self.reply(msg, reply)
 
     @with_touched_chat
     def cmd_unsub(self, msg, args, chat=None):
         if len(args) < 1:
-            self.reply(msg, "Use /unsub username")
+            self.reply(msg, "Use /unsub username1 username2 username3")
             return
-        tw_username = args[0]
+        tw_usernames = args
+        not_found = []
+        successfully_unsubscribed = []
 
-        tw_user = self.get_tw_user(tw_username)
+        for tw_username in tw_usernames:
+            tw_user = self.get_tw_user(tw_username)
 
-        if tw_user is None or Subscription.select().where(
+            if tw_user is None or Subscription.select().where(
+                    Subscription.tw_user == tw_user,
+                    Subscription.tg_chat == chat).count() == 0:
+                not_found.append(tw_username)
+                continue
+
+            Subscription.delete().where(
                 Subscription.tw_user == tw_user,
-                Subscription.tg_chat == chat).count() == 0:
-            self.reply(msg, "I didn't found any subscription to {}!".format(tw_username))
-            return
+                Subscription.tg_chat == chat).execute()
 
-        Subscription.delete().where(
-            Subscription.tw_user == tw_user,
-            Subscription.tg_chat == chat).execute()
+            successfully_unsubscribed.append(tw_user.full_name)
 
-        self.reply(msg, "You are no longer subscribed to {}".format(tw_user.full_name))
+        reply = ""
+
+        if len(not_found) is not 0:
+            reply += "I didn't find any subscription to {}\n\n".format(
+                         ", ".join(not_found)
+                     )
+
+        if len(successfully_unsubscribed) is not 0:
+            reply += "You are no longer subscribed to {}".format(
+                         ", ".join(successfully_unsubscribed)
+            )
+
+        self.reply(msg, reply)
 
     @with_touched_chat
     def cmd_list(self, msg, args, chat=None):
@@ -283,6 +318,24 @@ This bot is being worked on, so it may break sometimes. Contact @franciscod if y
             msg,
             subject + " subscribed to the following Twitter users:\n" +
             "\n - ".join(subs) + "\n\nYou can remove any of them using /unsub username")
+
+    @with_touched_chat
+    def cmd_export(self, msg, args, chat=None):
+        subscriptions = list(Subscription.select().where(
+                             Subscription.tg_chat == chat))
+
+        if len(subscriptions) == 0:
+            return self.reply(msg, 'You have no subscriptions yet! Add one with /sub username')
+
+        subs = ['']
+        for sub in subscriptions:
+            subs.append(sub.tw_user.screen_name)
+
+        subject = "Use this to subscribe to all subscribed Twitter users in another chat:\n\n"
+
+        self.reply(
+            msg,
+            subject + "/sub " + " ".join(subs))
 
     @with_touched_chat
     def cmd_wipe(self, msg, args, chat=None):
