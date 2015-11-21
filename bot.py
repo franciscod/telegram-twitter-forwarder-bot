@@ -219,7 +219,7 @@ This bot is being worked on, so it may break sometimes. Contact @franciscod if y
     @with_touched_chat
     def cmd_sub(self, msg, args, chat=None):
         if len(args) < 1:
-            self.reply(msg, "Use /sub username1 username2 username3...")
+            self.reply(msg, "Use /sub username1 username2 username3 ...")
             return
         tw_usernames = args
         not_found = []
@@ -265,7 +265,7 @@ This bot is being worked on, so it may break sometimes. Contact @franciscod if y
     @with_touched_chat
     def cmd_unsub(self, msg, args, chat=None):
         if len(args) < 1:
-            self.reply(msg, "Use /unsub username1 username2 username3")
+            self.reply(msg, "Use /unsub username1 username2 username3 ...")
             return
         tw_usernames = args
         not_found = []
