@@ -122,7 +122,7 @@ class BaseBot(object):
 
             action = None
 
-            if text is not None:
+            if len(text)is not 0:
                 if text[:1] == '/' and len(text) > 1:
                     command, *args = text[1:].split()
                     if '@' in command:
