@@ -53,14 +53,21 @@ class FetchAndSendTweetsJob(Job):
             for tweet in tweets:
                 self.logger.debug("Got tweet: {}".format(tweet.text))
 
-                # Check if tweet contains a photo
+                # Check if tweet contains media, else check if it contains a link to an image
                 extensions = ('.jpg', '.jpeg', '.png', '.gif')
                 pattern = '[(%s)]$' % ')('.join(extensions)
                 photo_url = ''
-                for url in tweet.entities['urls']:
-                    if re.search(pattern, url['expanded_url']):
-                        photo_url = url['expanded_url']
-                        break
+
+                if 'media' in tweet.entities:
+                    photo_url = tweet.entities['media'][0]['media_url_https']
+                else:
+                    for url in tweet.entities['urls']:
+                        if re.search(pattern, url['expanded_url']):
+                            photo_url = url['expanded_url']
+                            break
+
+                if photo_url:
+                    self.logger.debug("Found media URL in tweet: " + photo_url)
 
                 tw, _created = Tweet.get_or_create(
                     tw_id=tweet.id,
@@ -141,13 +148,13 @@ class TwitterForwarderBot(BaseBot):
             Use a soft-hyphen to put an invisible link to the first
             image in the tweet, which will then be displayed as preview
             '''
-            photo_url = None
+            photo_url = ''
             if tweet.photo_url:
                 photo_url = '[\xad](%s)' % tweet.photo_url
 
             self.tg.sendMessage(
                 chat_id=chat.chat_id,
-                disable_web_page_preview=photo_url is None,
+                disable_web_page_preview=not photo_url,
                 text="""
 {link_preview}*{name}* ([@{screen_name}](https://twitter.com/{screen_name})) at {created_at} UTC:
 {text}
