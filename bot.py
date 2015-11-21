@@ -204,8 +204,8 @@ class TwitterForwarderBot(BaseBot):
         self.reply(msg, """
 Hello! This bot forwards you updates from twitter streams!
 Here's the commands:
-- /sub - subscribes to updates from a user
-- /unsub - unsubscribes to a user
+- /sub - subscribes to updates from users
+- /unsub - unsubscribes from users
 - /list  - lists current subscriptions
 - /export - sends you a /sub command that contains all current subscriptions
 - /all - shows you the latest tweets from all subscriptions
