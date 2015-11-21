@@ -207,6 +207,7 @@ Here's the commands:
 - /sub - subscribes to updates from a user
 - /unsub - unsubscribes to a user
 - /list  - lists current subscriptions
+- /export - sends you a /sub command that contains all current subscriptions
 - /all - shows you the latest tweets from all subscriptions
 - /wipe - remove all the data about you and your subscriptions
 - /source - info about source code
