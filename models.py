@@ -1,6 +1,7 @@
 import datetime
 from peewee import (Model, DateTimeField, ForeignKeyField, BigIntegerField, CharField,
-                    IntegerField, TextField)
+                    IntegerField, TextField, OperationalError)
+from playhouse.migrate import migrate, SqliteMigrator, SqliteDatabase
 
 
 class TwitterUser(Model):
@@ -55,6 +56,7 @@ class Tweet(Model):
     text = TextField()
     created_at = DateTimeField()
     twitter_user = ForeignKeyField(TwitterUser, related_name='tweets')
+    photo_url = TextField(default='')
 
     @property
     def screen_name(self):
@@ -63,3 +65,12 @@ class Tweet(Model):
     @property
     def name(self):
         return self.twitter_user.name
+
+# Migrate photo_url
+try:
+    db = SqliteDatabase('peewee.db')
+    migrator = SqliteMigrator(db)
+
+    migrate(migrator.add_column('tweet', 'photo_url', Tweet.photo_url))
+except OperationalError:
+    pass
