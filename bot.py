@@ -388,4 +388,4 @@ This bot is being worked on, so it may break sometimes. Contact @franciscod if y
 
     @with_touched_chat
     def handle_chat(self, msg, chat=None):
-        self.reply(msg, "Hey! use commands to talk with me, please!")
+        self.reply(msg, "Hey! Use commands to talk with me, please! See /help")
