@@ -52,11 +52,29 @@ class FetchAndSendTweetsJob(Job):
 
             for tweet in tweets:
                 self.logger.debug("Got tweet: {}".format(tweet.text))
+
+                # Check if tweet contains media, else check if it contains a link to an image
+                extensions = ('.jpg', '.jpeg', '.png', '.gif')
+                pattern = '[(%s)]$' % ')('.join(extensions)
+                photo_url = ''
+
+                if 'media' in tweet.entities:
+                    photo_url = tweet.entities['media'][0]['media_url_https']
+                else:
+                    for url in tweet.entities['urls']:
+                        if re.search(pattern, url['expanded_url']):
+                            photo_url = url['expanded_url']
+                            break
+
+                if photo_url:
+                    self.logger.debug("Found media URL in tweet: " + photo_url)
+
                 tw, _created = Tweet.get_or_create(
                     tw_id=tweet.id,
                     text=html.unescape(tweet.text),
                     created_at=tweet.created_at,
                     twitter_user=tw_user,
+                    photo_url=photo_url,
                 )
 
         # send the new tweets to subscribers
@@ -97,13 +115,13 @@ class FetchAndSendTweetsJob(Job):
 
 
 def escape_markdown(text):
-    "Helper function to escape telegram markup symbols"
+    """Helper function to escape telegram markup symbols"""
     escape_chars = '\*_`\['
     return re.sub(r'([%s])' % escape_chars, r'\\\1', text)
 
 
 def markdown_twitter_usernames(text):
-    "Restore markdown escaped usernames and make them link to twitter"
+    """Restore markdown escaped usernames and make them link to twitter"""
     return re.sub(r'@([^\s]*)',
                   lambda s: '[@{username}](https://twitter.com/{username})'
                   .format(username=s.group(1).replace(r'\_', '_')),
@@ -126,15 +144,24 @@ class TwitterForwarderBot(BaseBot):
                 tweet.tw_id, chat.chat_id
             ))
 
+            '''
+            Use a soft-hyphen to put an invisible link to the first
+            image in the tweet, which will then be displayed as preview
+            '''
+            photo_url = ''
+            if tweet.photo_url:
+                photo_url = '[\xad](%s)' % tweet.photo_url
+
             self.tg.sendMessage(
                 chat_id=chat.chat_id,
-                disable_web_page_preview=True,
+                disable_web_page_preview=not photo_url,
                 text="""
-*{name}* ([@{screen_name}](https://twitter.com/{screen_name})) at {created_at} UTC:
+{link_preview}*{name}* ([@{screen_name}](https://twitter.com/{screen_name})) at {created_at} UTC:
 {text}
 -- [Link to this Tweet](https://twitter.com/{screen_name}/status/{tw_id})
 """
                 .format(
+                    link_preview=photo_url,
                     text=markdown_twitter_usernames(escape_markdown(tweet.text)),
                     name=escape_markdown(tweet.name),
                     screen_name=tweet.screen_name,
