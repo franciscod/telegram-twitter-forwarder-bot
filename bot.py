@@ -255,6 +255,7 @@ This bot is being worked on, so it may break sometimes. Contact @franciscod if y
         successfully_subscribed = []
 
         for tw_username in tw_usernames:
+            tw_username = tw_username.replace('@', '')
             tw_user = self.get_tw_user(tw_username)
 
             if tw_user is None:
