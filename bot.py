@@ -194,7 +194,9 @@ class TwitterForwarderBot(BaseBot):
 
         db_user, _created = TwitterUser.get_or_create(
             screen_name=tw_user.screen_name,
-            name=tw_user.name,
+            defaults={
+                'name': tw_user.name,
+            },
         )
 
         if not _created:
@@ -255,7 +257,6 @@ This bot is being worked on, so it may break sometimes. Contact @franciscod if y
         successfully_subscribed = []
 
         for tw_username in tw_usernames:
-            tw_username = tw_username.replace('@', '')
             tw_user = self.get_tw_user(tw_username)
 
             if tw_user is None:
