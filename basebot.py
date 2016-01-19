@@ -52,34 +52,6 @@ class Job(object):
         return False
 
 
-class KeepaliveMessageJob(Job):
-    INTERVAL = 3600
-    KEEPALIVE_PRIMARY_CHAT_ID = -1020003
-    KEEPALIVE_ALT_CHAT_ID = 9147949
-
-    def __init__(self, bot):
-        self.bot = bot
-
-    def run(self):
-        try:
-            self.bot.tg.sendMessage(
-                chat_id=self.KEEPALIVE_PRIMARY_CHAT_ID,
-                text="yo!",
-            )
-            return
-        except telegram.TelegramError:
-            pass
-
-        try:
-            self.bot.tg.sendMessage(
-                chat_id=self.KEEPALIVE_ALT_CHAT_ID,
-                text="yo! couldn't send to primary keepalive",
-            )
-            return
-        except:
-            pass
-
-
 class BaseBot(object):
     POLL_TIMEOUT = 10
 
@@ -93,7 +65,6 @@ class BaseBot(object):
         self.update_offset = update_offset
         self.update_queue = Queue()
         self.job_queue = JobQueue()
-        self.job_queue.put(KeepaliveMessageJob(self))
 
     def poll(self):
         got_something = False
