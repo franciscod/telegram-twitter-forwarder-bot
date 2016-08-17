@@ -1,10 +1,11 @@
+certifi==2016.8.8
 envparse==0.1.6
 future==0.15.2
 oauthlib==1.0.3
 peewee==2.6.4
-python-telegram-bot==2.9.2
+python-telegram-bot==5.0.0
 requests==2.8.1
 requests-oauthlib==0.5.0
 six==1.10.0
 tweepy==3.4.0
-wheel==0.24.0
+urllib3==1.16
