@@ -24,7 +24,10 @@ class FetchAndSendTweetsJob(Job):
     def run(self):
         self.logger.debug("Fetching tweets...")
         # fetch the tw users' tweets
-        tw_users_query = TwitterUser.select().join(Subscription)
+        tw_users_query = (TwitterUser
+            .select()
+            .join(Subscription)
+            .group_by(TwitterUser))
         tw_users = list(tw_users_query)
         random.shuffle(tw_users)
         
