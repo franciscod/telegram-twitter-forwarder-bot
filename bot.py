@@ -50,9 +50,12 @@ class FetchAndSendTweetsJob(Job):
                         since_id=tw_user.last_tweet_id)
 
             except tweepy.error.TweepError as e:
-                if type(e) is tweepy.RateLimitError:
-                    self.logger.debug("Whoops, hit ratelimit. Breaking.")
-                    break
+                m = e.message.get(0, None)
+                if m:
+                    c = m.get('code', None)
+                    if c == 429:
+                        self.logger.debug("Whoops, hit ratelimit. Breaking.")
+                        break
                     
                 self.logger.debug(
                     "Whoops, I couldn't get tweets from {}!".format(tw_user.screen_name))
