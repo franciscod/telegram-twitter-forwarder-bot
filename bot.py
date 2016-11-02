@@ -52,15 +52,19 @@ class FetchAndSendTweetsJob(Job):
             except tweepy.error.TweepError as e:
                 sc = e.response.status_code
                 if sc == 429:
-                    self.logger.debug("Hit ratelimit, breaking.")
+                    self.logger.debug("- Hit ratelimit, breaking.")
                     break
                     
                 if sc == 401:
-                    self.logger.debug("Protected tweets on {}.".format(tw_user.screen_name))
+                    self.logger.debug("- Protected tweets here.")
+                    continue
+                    
+                if sc == 404:
+                    self.logger.debug("- 404? Maybe screen name changed?")
                     continue
                     
                 self.logger.debug(
-                    "Whoops couldn't get tweets from {}. Status code {}".format(tw_user.screen_name, sc))
+                    "- Unknown exception, Status code {}".format(sc))
                 continue
 
             for tweet in tweets:
@@ -80,7 +84,7 @@ class FetchAndSendTweetsJob(Job):
                             break
 
                 if photo_url:
-                    self.logger.debug("Found media URL in tweet: " + photo_url)
+                    self.logger.debug("- - Found media URL in tweet: " + photo_url)
 
                 tw, _created = Tweet.get_or_create(
                     tw_id=tweet.id,
@@ -107,12 +111,12 @@ class FetchAndSendTweetsJob(Job):
                     s.last_tweet_id = tw.tw_id
                     s.save()
                 except IndexError:
-                    self.logger.debug("No tweets available yet on {}".format(s.tw_user.screen_name))
+                    self.logger.debug("- No tweets available yet on {}".format(s.tw_user.screen_name))
 
                 continue
 
             if s.tw_user.last_tweet_id > s.last_tweet_id:
-                self.logger.debug("Some fresh tweets here!")
+                self.logger.debug("- Some fresh tweets here!")
                 for tw in (s.tw_user.tweets.select()
                             .where(Tweet.tw_id > s.last_tweet_id)
                             .order_by(Tweet.tw_id.desc())
@@ -124,7 +128,7 @@ class FetchAndSendTweetsJob(Job):
                 s.save()
                 continue
 
-            self.logger.debug("No new tweets here.")
+            self.logger.debug("- No new tweets here.")
 
 
 def escape_markdown(text):
