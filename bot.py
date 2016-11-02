@@ -11,6 +11,7 @@ from models import TwitterUser, Tweet, TelegramChat, Subscription
 
 import html
 import re
+import random
 
 
 class FetchAndSendTweetsJob(Job):
@@ -23,12 +24,12 @@ class FetchAndSendTweetsJob(Job):
     def run(self):
         self.logger.debug("Fetching tweets...")
         # fetch the tw users' tweets
-        for tw_user in TwitterUser.select():
-            if tw_user.subscriptions.count() == 0:
-                self.logger.debug(
-                    "Skipping {} because 0 subscriptions".format(tw_user.screen_name))
-                continue
-
+        tw_users_query = TwitterUser.select().join(Subscription)
+        tw_users = list(tw_users_query)
+        random.shuffle(tw_users)
+        
+        for tw_user in tw_users:
+                
             try:
                 if tw_user.last_tweet_id == 0:
                     # get just the latest tweet
