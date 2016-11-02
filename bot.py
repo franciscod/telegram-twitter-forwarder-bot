@@ -14,7 +14,7 @@ import re
 
 
 class FetchAndSendTweetsJob(Job):
-    INTERVAL = 120
+    INTERVAL = 180
 
     def __init__(self, bot):
         self.bot = bot
