@@ -50,15 +50,17 @@ class FetchAndSendTweetsJob(Job):
                         since_id=tw_user.last_tweet_id)
 
             except tweepy.error.TweepError as e:
-                m = e.message.get(0, None)
-                if m:
-                    c = m.get('code', None)
-                    if c == 429:
-                        self.logger.debug("Whoops, hit ratelimit. Breaking.")
-                        break
+                sc = e.response.status_code
+                if sc == 429:
+                    self.logger.debug("Hit ratelimit, breaking.")
+                    break
+                    
+                if sc == 401:
+                    self.logger.debug("Protected tweets on {}.".format(tw_user.screen_name))
+                    continue
                     
                 self.logger.debug(
-                    "Whoops, I couldn't get tweets from {}!".format(tw_user.screen_name))
+                    "Whoops couldn't get tweets from {}. Status code {}".format(tw_user.screen_name, sc))
                 continue
 
             for tweet in tweets:
