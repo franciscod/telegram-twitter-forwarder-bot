@@ -37,7 +37,7 @@ class FetchAndSendTweetsJob(Job):
                 if tw_user.last_tweet_id == 0:
                     # get just the latest tweet
                     self.logger.debug(
-                        "Fetching the latest tweet from {}".format(tw_user.screen_name))
+                        "Fetching latest tweet by {}".format(tw_user.screen_name))
                     tweets = self.bot.tw.user_timeline(
                         screen_name=tw_user.screen_name,
                         count=1)
@@ -62,7 +62,7 @@ class FetchAndSendTweetsJob(Job):
                 continue
 
             for tweet in tweets:
-                self.logger.debug("Got tweet: {}".format(tweet.text))
+                self.logger.debug("- Got tweet: {}".format(tweet.text))
 
                 # Check if tweet contains media, else check if it contains a link to an image
                 extensions = ('.jpg', '.jpeg', '.png', '.gif')
