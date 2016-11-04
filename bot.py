@@ -10,12 +10,27 @@ from basebot import BaseBot, Job
 from models import TwitterUser, Tweet, TelegramChat, Subscription
 
 import html
+import math
 import re
 import random
 
 
 class FetchAndSendTweetsJob(Job):
-    INTERVAL = 180
+    # Twitter API rate limit parameters
+    LIMIT_WINDOW = 15 * 60
+    LIMIT_COUNT = 300
+    MIN_INTERVAL = 60
+
+    @property
+    def INTERVAL(self):
+        tw_count = (TwitterUser.select()
+                    .join(Subscription)
+                    .group_by(TwitterUser)
+                    .count())
+        if tw_count >= self.LIMIT_COUNT:
+            return self.LIMIT_WINDOW
+        res = math.ceil(tw_count * self.LIMIT_WINDOW / self.LIMIT_COUNT)
+        return max(self.MIN_INTERVAL, res)
 
     def __init__(self, bot):
         self.bot = bot
