@@ -8,6 +8,7 @@ class TwitterUser(Model):
     screen_name = CharField(unique=True)
     known_at = DateTimeField(default=datetime.datetime.now)
     name = CharField()
+    last_fetched = DateTimeField(default=datetime.datetime.now)
 
     @property
     def full_name(self):
@@ -66,11 +67,15 @@ class Tweet(Model):
     def name(self):
         return self.twitter_user.name
 
-# Migrate photo_url
-try:
-    db = SqliteDatabase('peewee.db')
-    migrator = SqliteMigrator(db)
-
-    migrate(migrator.add_column('tweet', 'photo_url', Tweet.photo_url))
-except OperationalError:
-    pass
+# Migrate new fields. TODO: think of some better migration mechanism
+db = SqliteDatabase('peewee.db')
+migrator = SqliteMigrator(db)
+operations = [
+    migrator.add_column('tweet', 'photo_url', Tweet.photo_url),
+    migrator.add_column('twitteruser', 'last_fetched', TwitterUser.last_fetched)
+]
+for op in operations:
+    try:
+        migrate(op)
+    except OperationalError:
+        pass

@@ -9,9 +9,9 @@ from telegram import TelegramError
 from basebot import BaseBot, Job
 from models import TwitterUser, Tweet, TelegramChat, Subscription
 
+from datetime import datetime
 import html
 import re
-import random
 
 
 class FetchAndSendTweetsJob(Job):
@@ -24,13 +24,11 @@ class FetchAndSendTweetsJob(Job):
     def run(self):
         self.logger.debug("Fetching tweets...")
         # fetch the tw users' tweets
-        tw_users_query = (TwitterUser
-            .select()
-            .join(Subscription)
-            .group_by(TwitterUser))
-        tw_users = list(tw_users_query)
-        random.shuffle(tw_users)
-        
+        tw_users = (TwitterUser.select()
+                               .join(Subscription)
+                               .group_by(TwitterUser)
+                               .order_by(TwitterUser.last_fetched))
+
         for tw_user in tw_users:
                 
             try:
@@ -48,7 +46,8 @@ class FetchAndSendTweetsJob(Job):
                     tweets = self.bot.tw.user_timeline(
                         screen_name=tw_user.screen_name,
                         since_id=tw_user.last_tweet_id)
-
+                tw_user.last_fetched = datetime.now()
+                tw_user.save()
             except tweepy.error.TweepError as e:
                 sc = e.response.status_code
                 if sc == 429:
