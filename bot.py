@@ -117,7 +117,7 @@ class FetchAndSendTweetsJob(Job):
             if s.last_tweet_id == 0:  # didn't receive any tweet yet
                 try:
                     tw = (s.tw_user.tweets.select()
-                           .order_by(Tweet.tw_id.desc())
+                           .order_by(Tweet.tw_id.asc())
                            .limit(1))[0]
                     self.bot.send_tweet(s.tg_chat, tw)
 
@@ -133,7 +133,7 @@ class FetchAndSendTweetsJob(Job):
                 self.logger.debug("- Some fresh tweets here!")
                 for tw in (s.tw_user.tweets.select()
                             .where(Tweet.tw_id > s.last_tweet_id)
-                            .order_by(Tweet.tw_id.desc())
+                            .order_by(Tweet.tw_id.asc())
                            ):
                     self.bot.send_tweet(s.tg_chat, tw)
 
