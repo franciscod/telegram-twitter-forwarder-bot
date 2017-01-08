@@ -19,7 +19,7 @@ class TwitterUser(Model):
         if self.tweets.count() == 0:
             return 0
 
-        return self.tweets.order_by(Tweet.tw_id.desc()).limit(1)[0].tw_id
+        return self.tweets.order_by(Tweet.tw_id.desc()).first().tw_id
 
 
 class TelegramChat(Model):
@@ -68,7 +68,7 @@ class Tweet(Model):
         return self.twitter_user.name
 
 # Migrate new fields. TODO: think of some better migration mechanism
-db = SqliteDatabase('peewee.db')
+db = SqliteDatabase('peewee.db', timeout=10)
 migrator = SqliteMigrator(db)
 operations = [
     migrator.add_column('tweet', 'photo_url', Tweet.photo_url),
