@@ -18,7 +18,7 @@ class FetchAndSendTweetsJob(Job):
     MIN_INTERVAL = 60
 
     @property
-    def _interval(self):
+    def interval(self):
         tw_count = (TwitterUser.select()
                     .join(Subscription)
                     .group_by(TwitterUser)
@@ -29,7 +29,6 @@ class FetchAndSendTweetsJob(Job):
         return max(self.MIN_INTERVAL, res)
 
     def __init__(self, context=None):
-        self.interval = self._interval
         self.repeat = True
         self.context = context
         self.name = self.__class__.__name__
