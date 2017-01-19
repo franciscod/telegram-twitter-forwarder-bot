@@ -1,5 +1,11 @@
+import json
+
 import telegram
+
+import tweepy
 from telegram.emoji import Emoji
+from tweepy.auth import OAuthHandler
+from tweepy.error import TweepError
 
 from models import Subscription
 from util import with_touched_chat, escape_markdown, markdown_twitter_usernames
@@ -28,6 +34,9 @@ Here's the commands:
 - /export - sends you a /sub command that contains all current subscriptions
 - /all - shows you the latest tweets from all subscriptions
 - /wipe - remove all the data about you and your subscriptions
+- /auth - start Twitter authorization process
+- /verify - send Twitter verifier code to complete authorization process
+- /export_friends - generate /sub command to subscribe to all your Twitter friends (authorization required)
 - /source - info about source code
 - /help - view help text
 This bot is being worked on, so it may break sometimes. Contact @franciscod if you want {}
@@ -211,6 +220,55 @@ def cmd_all(bot, update, chat=None):
     bot.reply(update, text,
               disable_web_page_preview=True,
               parse_mode=telegram.ParseMode.MARKDOWN)
+
+
+@with_touched_chat
+def cmd_get_auth_url(bot, update, chat):
+    auth = OAuthHandler(bot.tw.auth.consumer_key, bot.tw.auth.consumer_secret)
+    auth_url = auth.get_authorization_url()
+    chat.twitter_request_token = json.dumps(auth.request_token)
+    chat.save()
+    msg = "go to [this url]({}) and send me your verifier code using /verify code"
+    bot.reply(update, msg.format(auth_url),
+              parse_mode=telegram.ParseMode.MARKDOWN)
+
+
+@with_touched_chat
+def cmd_verify(bot, update, args, chat):
+    if not chat.twitter_request_token:
+        bot.reply(update, "Use /auth command first")
+        return
+    if len(args) < 1:
+        bot.reply(update, "No verifier code specified")
+        return
+    verifier_code = args[0]
+    auth = OAuthHandler(bot.tw.auth.consumer_key, bot.tw.auth.consumer_secret)
+    auth.request_token = json.loads(chat.twitter_request_token)
+    try:
+        auth.get_access_token(verifier_code)
+    except TweepError:
+        bot.reply(update, "Invalid verifier code. Use /auth again")
+        return
+    chat.twitter_token = auth.access_token
+    chat.twitter_secret = auth.access_token_secret
+    chat.save()
+    bot.reply(update, "Access token setup complete")
+
+
+@with_touched_chat
+def cmd_export_friends(bot, update, chat):
+    if not chat.twitter_token or not chat.twitter_secret:
+        if not chat.twitter_request_token:
+            bot.reply(update, "You have not authorized yet. Use /auth to do it")
+        else:
+            bot.reply(update, "You have not verified your authorization yet. Use /verify code to do it")
+        return
+    auth = OAuthHandler(bot.tw.auth.consumer_key, bot.tw.auth.consumer_secret)
+    auth.set_access_token(chat.twitter_token, chat.twitter_secret)
+    api = tweepy.API(auth)
+    screen_names = [f.screen_name for f in api.friends()]
+    bot.reply(update, "Use this to subscribe to all your Twitter friends:")
+    bot.reply(update, "/sub {}".format(" ".join(screen_names)))
 
 
 @with_touched_chat

@@ -27,6 +27,9 @@ class TelegramChat(Model):
     known_at = DateTimeField(default=datetime.datetime.now)
     tg_type = CharField()
     last_contact = DateTimeField(default=datetime.datetime.now)
+    twitter_request_token = CharField(null=True)
+    twitter_token = CharField(null=True)
+    twitter_secret = CharField(null=True)
 
     @property
     def is_group(self):
@@ -72,7 +75,10 @@ db = SqliteDatabase('peewee.db', timeout=10)
 migrator = SqliteMigrator(db)
 operations = [
     migrator.add_column('tweet', 'photo_url', Tweet.photo_url),
-    migrator.add_column('twitteruser', 'last_fetched', TwitterUser.last_fetched)
+    migrator.add_column('twitteruser', 'last_fetched', TwitterUser.last_fetched),
+    migrator.add_column('telegramchat', 'twitter_request_token', TelegramChat.twitter_request_token),
+    migrator.add_column('telegramchat', 'twitter_token', TelegramChat.twitter_token),
+    migrator.add_column('telegramchat', 'twitter_secret', TelegramChat.twitter_secret),
 ]
 for op in operations:
     try:
