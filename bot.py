@@ -2,6 +2,7 @@ import logging
 
 import telegram
 import tweepy
+from pytz import timezone, utc
 from telegram import Bot
 from telegram.error import TelegramError
 
@@ -35,11 +36,16 @@ class TwitterForwarderBot(Bot):
             if tweet.photo_url:
                 photo_url = '[\xad](%s)' % tweet.photo_url
 
+            created_dt = utc.localize(tweet.created_at)
+            if chat.timezone_name is not None:
+                tz = timezone(chat.timezone_name)
+                created_dt = created_dt.astimezone(tz)
+            created_at = created_dt.strftime('%Y-%m-%d %H:%M:%S %Z')
             self.sendMessage(
                 chat_id=chat.chat_id,
                 disable_web_page_preview=not photo_url,
                 text="""
-{link_preview}*{name}* ([@{screen_name}](https://twitter.com/{screen_name})) at {created_at} UTC:
+{link_preview}*{name}* ([@{screen_name}](https://twitter.com/{screen_name})) at {created_at}:
 {text}
 -- [Link to this Tweet](https://twitter.com/{screen_name}/status/{tw_id})
 """
@@ -48,7 +54,7 @@ class TwitterForwarderBot(Bot):
                     text=markdown_twitter_usernames(escape_markdown(tweet.text)),
                     name=escape_markdown(tweet.name),
                     screen_name=tweet.screen_name,
-                    created_at=tweet.created_at,
+                    created_at=created_at,
                     tw_id=tweet.tw_id,
                 ),
                 parse_mode=telegram.ParseMode.MARKDOWN)

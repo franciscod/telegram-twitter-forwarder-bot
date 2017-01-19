@@ -251,21 +251,23 @@ def cmd_verify(bot, update, args, chat):
         return
     chat.twitter_token = auth.access_token
     chat.twitter_secret = auth.access_token_secret
+    api = tweepy.API(auth)
+    settings = api.get_settings()
+    chat.timezone_name = settings.get("time_zone", {}).get("tzinfo_name")
     chat.save()
     bot.reply(update, "Access token setup complete")
 
 
 @with_touched_chat
 def cmd_export_friends(bot, update, chat):
-    if not chat.twitter_token or not chat.twitter_secret:
+    if not chat.is_authorized:
         if not chat.twitter_request_token:
             bot.reply(update, "You have not authorized yet. Use /auth to do it")
         else:
             bot.reply(update, "You have not verified your authorization yet. Use /verify code to do it")
         return
-    auth = OAuthHandler(bot.tw.auth.consumer_key, bot.tw.auth.consumer_secret)
-    auth.set_access_token(chat.twitter_token, chat.twitter_secret)
-    api = tweepy.API(auth)
+    bot_auth = bot.tw.auth
+    api = chat.tw_api(bot_auth.consumer_key, bot_auth.consumer_secret)
     screen_names = [f.screen_name for f in api.friends()]
     bot.reply(update, "Use this to subscribe to all your Twitter friends:")
     bot.reply(update, "/sub {}".format(" ".join(screen_names)))

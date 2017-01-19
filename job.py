@@ -47,7 +47,6 @@ class FetchAndSendTweetsJob(Job):
                          .group_by(TwitterUser)
                          .order_by(TwitterUser.last_fetched)))
         updated_tw_users = []
-        new_tweets_tw_users = []
         for tw_user in tw_users:
             try:
                 if tw_user.last_tweet_id == 0:
@@ -64,8 +63,6 @@ class FetchAndSendTweetsJob(Job):
                     tweets = bot.tw.user_timeline(
                         screen_name=tw_user.screen_name,
                         since_id=tw_user.last_tweet_id)
-                    if tweets:
-                        new_tweets_tw_users.append(tw_user)
                 updated_tw_users.append(tw_user)
             except tweepy.error.TweepError as e:
                 sc = e.response.status_code
@@ -117,7 +114,7 @@ class FetchAndSendTweetsJob(Job):
         TwitterUser.update(last_fetched=datetime.now()) \
             .where(TwitterUser.id << [tw.id for tw in updated_tw_users]).execute()
 
-        if not new_tweets_tw_users:
+        if not updated_tw_users:
             return
 
         if tweet_rows:
@@ -125,7 +122,7 @@ class FetchAndSendTweetsJob(Job):
 
         # send the new tweets to subscribers
         subscriptions = list(Subscription.select()
-                             .where(Subscription.tw_user << new_tweets_tw_users))
+                             .where(Subscription.tw_user << updated_tw_users))
         for s in subscriptions:
             # are there new tweets? send em all!
             self.logger.debug(

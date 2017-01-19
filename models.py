@@ -1,7 +1,10 @@
 import datetime
+
+import tweepy
 from peewee import (Model, DateTimeField, ForeignKeyField, BigIntegerField, CharField,
                     IntegerField, TextField, OperationalError)
 from playhouse.migrate import migrate, SqliteMigrator, SqliteDatabase
+from tweepy.auth import OAuthHandler
 
 
 class TwitterUser(Model):
@@ -30,6 +33,7 @@ class TelegramChat(Model):
     twitter_request_token = CharField(null=True)
     twitter_token = CharField(null=True)
     twitter_secret = CharField(null=True)
+    timezone_name = CharField(null=True)
 
     @property
     def is_group(self):
@@ -38,6 +42,15 @@ class TelegramChat(Model):
     def touch_contact(self):
         self.last_contact = datetime.datetime.now()
         self.save()
+
+    @property
+    def is_authorized(self):
+        return self.twitter_token is not None and self.twitter_secret is not None
+
+    def tw_api(self, consumer_key, consumer_secret):
+        auth = OAuthHandler(consumer_key, consumer_secret)
+        auth.set_access_token(self.twitter_token, self.twitter_secret)
+        return tweepy.API(auth)
 
 
 class Subscription(Model):
@@ -79,6 +92,7 @@ operations = [
     migrator.add_column('telegramchat', 'twitter_request_token', TelegramChat.twitter_request_token),
     migrator.add_column('telegramchat', 'twitter_token', TelegramChat.twitter_token),
     migrator.add_column('telegramchat', 'twitter_secret', TelegramChat.twitter_secret),
+    migrator.add_column('telegramchat', 'timezone_name', TelegramChat.timezone_name),
 ]
 for op in operations:
     try:
