@@ -59,6 +59,7 @@ if __name__ == '__main__':
     dispatcher.add_handler(CommandHandler('auth', cmd_get_auth_url))
     dispatcher.add_handler(CommandHandler('verify', cmd_verify, pass_args=True))
     dispatcher.add_handler(CommandHandler('export_friends', cmd_export_friends))
+    dispatcher.add_handler(CommandHandler('set_timezone', cmd_set_timezone, pass_args=True))
     dispatcher.add_handler(MessageHandler([Filters.text], handle_chat))
 
     # put job

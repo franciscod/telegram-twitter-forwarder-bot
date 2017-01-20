@@ -1,9 +1,11 @@
 import json
+from datetime import datetime
 
+from pytz import timezone
+from pytz.exceptions import UnknownTimeZoneError
 import telegram
-
-import tweepy
 from telegram.emoji import Emoji
+import tweepy
 from tweepy.auth import OAuthHandler
 from tweepy.error import TweepError
 
@@ -36,13 +38,15 @@ Here's the commands:
 - /wipe - remove all the data about you and your subscriptions
 - /auth - start Twitter authorization process
 - /verify - send Twitter verifier code to complete authorization process
-- /export_friends - generate /sub command to subscribe to all your Twitter friends (authorization required)
+- /export\_friends - generate /sub command to subscribe to all your Twitter friends (authorization required)
+- /set\_timezone - set your [timezone name](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones)
 - /source - info about source code
 - /help - view help text
 This bot is being worked on, so it may break sometimes. Contact @franciscod if you want {}
 """.format(
             Emoji.SMILING_FACE_WITH_OPEN_MOUTH_AND_SMILING_EYES),
-                  disable_web_page_preview=True)
+                  disable_web_page_preview=True,
+                  parse_mode=telegram.ParseMode.MARKDOWN)
 
 
 @with_touched_chat
@@ -251,11 +255,12 @@ def cmd_verify(bot, update, args, chat):
         return
     chat.twitter_token = auth.access_token
     chat.twitter_secret = auth.access_token_secret
-    api = tweepy.API(auth)
-    settings = api.get_settings()
-    chat.timezone_name = settings.get("time_zone", {}).get("tzinfo_name")
     chat.save()
     bot.reply(update, "Access token setup complete")
+    api = tweepy.API(auth)
+    settings = api.get_settings()
+    tz_name = settings.get("time_zone", {}).get("tzinfo_name")
+    cmd_set_timezone(bot, update, [tz_name])
 
 
 @with_touched_chat
@@ -271,6 +276,21 @@ def cmd_export_friends(bot, update, chat):
     screen_names = [f.screen_name for f in api.friends()]
     bot.reply(update, "Use this to subscribe to all your Twitter friends:")
     bot.reply(update, "/sub {}".format(" ".join(screen_names)))
+
+
+@with_touched_chat
+def cmd_set_timezone(bot, update, args, chat):
+    if len(args) < 1:
+        bot.reply(update, "No timezone specified")
+    tz_name = args[0]
+    try:
+        tz = timezone(tz_name)
+        chat.timezone_name = tz_name
+        chat.save()
+        tz_str = datetime.now(tz).strftime('%Z %z')
+        bot.reply(update, "Timezone is set to {}".format(tz_str))
+    except UnknownTimeZoneError:
+        bot.reply(update, "Unknown timezone")
 
 
 @with_touched_chat
