@@ -89,20 +89,27 @@ class FetchAndSendTweetsJob(Job):
                 extensions = ('.jpg', '.jpeg', '.png', '.gif')
                 pattern = '[(%s)]$' % ')('.join(extensions)
                 photo_url = ''
-
+                tweet_text = html.unescape(tweet.text)
                 if 'media' in tweet.entities:
                     photo_url = tweet.entities['media'][0]['media_url_https']
                 else:
-                    for url in tweet.entities['urls']:
-                        if re.search(pattern, url['expanded_url']):
-                            photo_url = url['expanded_url']
+                    for url_entity in tweet.entities['urls']:
+                        expanded_url = url_entity['expanded_url']
+                        if re.search(pattern, expanded_url):
+                            photo_url = expanded_url
                             break
-
                 if photo_url:
                     self.logger.debug("- - Found media URL in tweet: " + photo_url)
+
+                for url_entity in tweet.entities['urls']:
+                    expanded_url = url_entity['expanded_url']
+                    indices = url_entity['indices']
+                    display_url = tweet.text[indices[0]:indices[1]]
+                    tweet_text = tweet_text.replace(display_url, expanded_url)
+
                 tweet_rows.append({
                     'tw_id': tweet.id,
-                    'text': html.unescape(tweet.text),
+                    'text': tweet_text,
                     'created_at': tweet.created_at,
                     'twitter_user': tw_user,
                     'photo_url': photo_url,
