@@ -69,7 +69,7 @@ class FetchAndSendTweetsJob(Job):
                 if sc == 429:
                     self.logger.debug("- Hit ratelimit, breaking.")
                     break
-                updated_tw_users.append(tw_user)
+
                 if sc == 401:
                     self.logger.debug("- Protected tweets here.")
                     continue
