@@ -12,6 +12,7 @@ from tweepy.error import TweepError
 from models import Subscription
 from util import with_touched_chat, escape_markdown, markdown_twitter_usernames
 
+TIMEZONE_LIST_URL = "https://en.wikipedia.org/wiki/List_of_tz_database_time_zones"
 
 def cmd_ping(bot, update):
     bot.reply(update, 'Pong!')
@@ -39,11 +40,12 @@ Here's the commands:
 - /auth - start Twitter authorization process
 - /verify - send Twitter verifier code to complete authorization process
 - /export\_friends - generate /sub command to subscribe to all your Twitter friends (authorization required)
-- /set\_timezone - set your [timezone name](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones)
+- /set\_timezone - set your [timezone name]({}) (for example Asia/Tokyo)
 - /source - info about source code
 - /help - view help text
 This bot is being worked on, so it may break sometimes. Contact @franciscod if you want {}
 """.format(
+            TIMEZONE_LIST_URL,
             Emoji.SMILING_FACE_WITH_OPEN_MOUTH_AND_SMILING_EYES),
                   disable_web_page_preview=True,
                   parse_mode=telegram.ParseMode.MARKDOWN)
@@ -281,8 +283,13 @@ def cmd_export_friends(bot, update, chat):
 @with_touched_chat
 def cmd_set_timezone(bot, update, args, chat):
     if len(args) < 1:
-        bot.reply(update, "No timezone specified")
+        bot.reply(update,
+            "No timezone specified. Find yours [here]({})!".format(TIMEZONE_LIST_URL),
+            parse_mode=telegram.ParseMode.MARKDOWN)
+        return
+
     tz_name = args[0]
+
     try:
         tz = timezone(tz_name)
         chat.timezone_name = tz_name
@@ -290,7 +297,9 @@ def cmd_set_timezone(bot, update, args, chat):
         tz_str = datetime.now(tz).strftime('%Z %z')
         bot.reply(update, "Timezone is set to {}".format(tz_str))
     except UnknownTimeZoneError:
-        bot.reply(update, "Unknown timezone")
+        bot.reply(update,
+            "Unknown timezone. Find yours [here]({})!".format(TIMEZONE_LIST_URL),
+            parse_mode=telegram.ParseMode.MARKDOWN)
 
 
 @with_touched_chat
