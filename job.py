@@ -140,10 +140,13 @@ class FetchAndSendTweetsJob(Job):
                     tw = s.tw_user.tweets.select() \
                         .order_by(Tweet.tw_id.desc()) \
                         .first()
-                    bot.send_tweet(s.tg_chat, tw)
-                    # save the latest tweet sent on this subscription
-                    s.last_tweet_id = tw.tw_id
-                    s.save()
+                    if tw is None:
+                        self.logger.warning("Something fishy is going on here...")
+                    else:
+                        bot.send_tweet(s.tg_chat, tw)
+                        # save the latest tweet sent on this subscription
+                        s.last_tweet_id = tw.tw_id
+                        s.save()
                 except IndexError:
                     self.logger.debug("- No tweets available yet on {}".format(s.tw_user.screen_name))
 
