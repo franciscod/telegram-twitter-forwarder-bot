@@ -1,7 +1,10 @@
 import datetime
+
+import tweepy
 from peewee import (Model, DateTimeField, ForeignKeyField, BigIntegerField, CharField,
                     IntegerField, TextField, OperationalError)
 from playhouse.migrate import migrate, SqliteMigrator, SqliteDatabase
+from tweepy.auth import OAuthHandler
 
 
 class TwitterUser(Model):
@@ -19,7 +22,7 @@ class TwitterUser(Model):
         if self.tweets.count() == 0:
             return 0
 
-        return self.tweets.order_by(Tweet.tw_id.desc()).limit(1)[0].tw_id
+        return self.tweets.order_by(Tweet.tw_id.desc()).first().tw_id
 
 
 class TelegramChat(Model):
@@ -27,6 +30,10 @@ class TelegramChat(Model):
     known_at = DateTimeField(default=datetime.datetime.now)
     tg_type = CharField()
     last_contact = DateTimeField(default=datetime.datetime.now)
+    twitter_request_token = CharField(null=True)
+    twitter_token = CharField(null=True)
+    twitter_secret = CharField(null=True)
+    timezone_name = CharField(null=True)
 
     @property
     def is_group(self):
@@ -35,6 +42,15 @@ class TelegramChat(Model):
     def touch_contact(self):
         self.last_contact = datetime.datetime.now()
         self.save()
+
+    @property
+    def is_authorized(self):
+        return self.twitter_token is not None and self.twitter_secret is not None
+
+    def tw_api(self, consumer_key, consumer_secret):
+        auth = OAuthHandler(consumer_key, consumer_secret)
+        auth.set_access_token(self.twitter_token, self.twitter_secret)
+        return tweepy.API(auth)
 
 
 class Subscription(Model):
@@ -68,11 +84,15 @@ class Tweet(Model):
         return self.twitter_user.name
 
 # Migrate new fields. TODO: think of some better migration mechanism
-db = SqliteDatabase('peewee.db')
+db = SqliteDatabase('peewee.db', timeout=10)
 migrator = SqliteMigrator(db)
 operations = [
     migrator.add_column('tweet', 'photo_url', Tweet.photo_url),
-    migrator.add_column('twitteruser', 'last_fetched', TwitterUser.last_fetched)
+    migrator.add_column('twitteruser', 'last_fetched', TwitterUser.last_fetched),
+    migrator.add_column('telegramchat', 'twitter_request_token', TelegramChat.twitter_request_token),
+    migrator.add_column('telegramchat', 'twitter_token', TelegramChat.twitter_token),
+    migrator.add_column('telegramchat', 'twitter_secret', TelegramChat.twitter_secret),
+    migrator.add_column('telegramchat', 'timezone_name', TelegramChat.timezone_name),
 ]
 for op in operations:
     try:
