@@ -203,8 +203,8 @@ class FetchAndSendTweetsJob(Job):
                     try:
                         bot.sendMessage(chat_id=chat_id, text=message)
                     except TelegramError as e:
-                        self.logger.info("Couldn't send tweet {} to chat {}: {}".format(
-                            tweet.tw_id, chat.chat_id, e.message
+                        self.logger.info("Couldn't send unsubscription notice of {} to chat {}: {}".format(
+                            tw_user.screen_name, chat_id, e.message
                         ))
 
                         delet_this = None
