@@ -198,7 +198,27 @@ class FetchAndSendTweetsJob(Job):
                     chat_id = s.tg_chat.chat_id
                     self.logger.debug ("- - bye on chatid={}".format(chat_id))
                     s.delete()
-                    bot.sendMessage(chat_id=chat_id, text=message)
+
+                    try:
+                        bot.sendMessage(chat_id=chat_id, text=message)
+                    except TelegramError as e:
+                        self.logger.info("Couldn't send tweet {} to chat {}: {}".format(
+                            tweet.tw_id, chat.chat_id, e.message
+                        ))
+
+                        delet_this = None
+
+                        if e.message == 'Bad Request: group chat was migrated to a supergroup chat':
+                            delet_this = True
+
+                        if e.message == "Unauthorized":
+                            delet_this = True
+
+                        if delet_this:
+                            self.logger.info("Marking chat for deletion")
+                            chat.delete_soon = True
+                            chat.save()
+
             self.logger.debug ("- Cleanup finished")
 
         self.logger.debug("Cleaning up TelegramChats marked for deletion")
