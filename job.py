@@ -115,13 +115,19 @@ class FetchAndSendTweetsJob(Job):
                     display_url = tweet.text[indices[0]:indices[1]]
                     tweet_text = tweet_text.replace(display_url, expanded_url)
 
-                tweet_rows.append({
-                    'tw_id': tweet.id,
-                    'text': tweet_text,
-                    'created_at': tweet.created_at,
-                    'twitter_user': tw_user,
-                    'photo_url': photo_url,
-                })
+                try:
+                    t = Tweet.get(Tweet.tw_id == tweet.id)
+                    self.logger.warning("Got duplicated tw_id on this tweet:")
+                    self.logger.warning(str(tweet))
+                except Tweet.DoesNotExist:
+                    tweet_rows.append({
+                        'tw_id': tweet.id,
+                        'text': tweet_text,
+                        'created_at': tweet.created_at,
+                        'twitter_user': tw_user,
+                        'photo_url': photo_url,
+                    })
+
                 if len(tweet_rows) >= self.TWEET_BATCH_INSERT_COUNT:
                     Tweet.insert_many(tweet_rows).execute()
                     tweet_rows = []
