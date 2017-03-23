@@ -190,7 +190,7 @@ class FetchAndSendTweetsJob(Job):
         else:
             for tw_user, reason in users_to_cleanup:
                 self.logger.debug ("- Cleaning up user @{}, {}".format(tw_user.screen_name, reason))
-                message = INFO_CLEANUP[reason]
+                message = INFO_CLEANUP[reason].format(tw_user.screen_name)
                 subs = list(tw_user.subscriptions)
                 for s in subs:
                     chat = s.tg_chat
