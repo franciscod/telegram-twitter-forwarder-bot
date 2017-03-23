@@ -65,8 +65,9 @@ class TwitterForwarderBot(Bot):
             ))
 
             if e.message == "Unauthorized":
-                self.logger.info("Deleting chat and it's linked objects")
-                chat.delete_instance(recursive=True)
+                self.logger.info("Marking chat for deletion")
+                chat.delete_soon = True
+                chat.save()
 
     def get_chat(self, tg_chat):
         db_chat, _created = TelegramChat.get_or_create(

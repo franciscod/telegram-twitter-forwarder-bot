@@ -197,3 +197,8 @@ class FetchAndSendTweetsJob(Job):
                     s.delete()
                     bot.sendMessage(chat_id=chat_id, text=message)
             self.logger.debug ("- Cleanup finished")
+
+        self.logger.debug("Cleaning up TelegramChats marked for deletion")
+        for chat in TelegramChat.select().where(TelegramChat.delete_soon == True):
+            chat.delete_instance(recursive=True)
+            self.logger.debug("Deleting chat {}".format(chat.chat_id))
