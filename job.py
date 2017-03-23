@@ -10,6 +10,10 @@ from telegram.ext import Job
 
 from models import TwitterUser, Tweet, Subscription, db
 
+INFO_CLEANUP = {
+    'NOTFOUND': "Your subscription to @{} was removed because that profile doesn't exist anymore. Maybe the account's name changed?",
+    'PROTECTED': "Your subscription to @{} was removed because that profile is protected and can't be fetched.",
+}
 
 class FetchAndSendTweetsJob(Job):
     # Twitter API rate limit parameters
@@ -47,6 +51,8 @@ class FetchAndSendTweetsJob(Job):
                          .group_by(TwitterUser)
                          .order_by(TwitterUser.last_fetched)))
         updated_tw_users = []
+        users_to_cleanup = []
+
         for tw_user in tw_users:
             try:
                 if tw_user.last_tweet_id == 0:
@@ -71,11 +77,13 @@ class FetchAndSendTweetsJob(Job):
                     break
 
                 if sc == 401:
-                    self.logger.debug("- Protected tweets here.")
+                    users_to_cleanup.append((tw_user, 'PROTECTED'))
+                    self.logger.debug("- Protected tweets here. Cleaning up this user")
                     continue
 
                 if sc == 404:
-                    self.logger.debug("- 404? Maybe screen name changed?")
+                    users_to_cleanup.append((tw_user, 'NOTFOUND'))
+                    self.logger.debug("- 404? Maybe screen name changed? Cleaning up this user")
                     continue
 
                 self.logger.debug(
@@ -166,3 +174,19 @@ class FetchAndSendTweetsJob(Job):
                 continue
 
             self.logger.debug("- No new tweets here.")
+
+
+        self.logger.debug("Starting tw_user cleanup")
+        if not users_to_cleanup:
+            self.logger.debug("- Nothing to cleanup")
+        else:
+            for tw_user, reason in users_to_cleanup:
+                self.logger.debug ("- Cleaning up user @{}, {}".format(tw_user.screen_name, reason))
+                message = INFO_CLEANUP[reason]
+                subs = list(tw_user.subscriptions)
+                for s in subs:
+                    chat_id = s.tg_chat.chat_id
+                    self.logger.debug ("- - bye on chatid={}".format(chat_id))
+                    s.delete()
+                    bot.sendMessage(chat_id=chat_id, text=message)
+            self.logger.debug ("- Cleanup finished")
