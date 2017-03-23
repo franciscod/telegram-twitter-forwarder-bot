@@ -189,7 +189,7 @@ class FetchAndSendTweetsJob(Job):
             self.logger.debug("- Nothing to cleanup")
         else:
             for tw_user, reason in users_to_cleanup:
-                self.logger.debug ("- Cleaning up user @{}, {}".format(tw_user.screen_name, reason))
+                self.logger.debug("- Cleaning up subs on user @{}, {}".format(tw_user.screen_name, reason))
                 message = INFO_CLEANUP[reason].format(tw_user.screen_name)
                 subs = list(tw_user.subscriptions)
                 for s in subs:
@@ -199,7 +199,7 @@ class FetchAndSendTweetsJob(Job):
                         continue
                     chat_id = chat.chat_id
                     self.logger.debug ("- - bye on chatid={}".format(chat_id))
-                    s.delete()
+                    s.delete_instance()
 
                     try:
                         bot.sendMessage(chat_id=chat_id, text=message)
@@ -220,6 +220,9 @@ class FetchAndSendTweetsJob(Job):
                             self.logger.info("Marking chat for deletion")
                             chat.delete_soon = True
                             chat.save()
+
+            self.logger.debug("- Cleaning up TwitterUser @{}".format(tw_user.screen_name, reason))
+            tw_user.delete_instance()
 
             self.logger.debug ("- Cleanup finished")
 
