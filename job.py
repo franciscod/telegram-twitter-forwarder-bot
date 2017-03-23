@@ -193,10 +193,11 @@ class FetchAndSendTweetsJob(Job):
                 message = INFO_CLEANUP[reason]
                 subs = list(tw_user.subscriptions)
                 for s in subs:
-                    if s.tg_chat.delete_soon:
+                    chat = s.tg_chat
+                    if chat.delete_soon:
                         self.logger.debug ("- - skipping because of delete_soon chatid={}".format(chat_id))
                         continue
-                    chat_id = s.tg_chat.chat_id
+                    chat_id = chat.chat_id
                     self.logger.debug ("- - bye on chatid={}".format(chat_id))
                     s.delete()
 
