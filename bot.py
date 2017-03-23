@@ -64,7 +64,15 @@ class TwitterForwarderBot(Bot):
                 tweet.tw_id, chat.chat_id, e.message
             ))
 
+            delet_this = None
+
+            if e.message == 'Bad Request: group chat was migrated to a supergroup chat':
+                delet_this = True
+
             if e.message == "Unauthorized":
+                delet_this = True
+
+            if delet_this:
                 self.logger.info("Marking chat for deletion")
                 chat.delete_soon = True
                 chat.save()
