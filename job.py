@@ -9,7 +9,7 @@ import tweepy
 from telegram.error import TelegramError
 from telegram.ext import Job
 
-from models import TwitterUser, Tweet, Subscription, db
+from models import TwitterUser, Tweet, Subscription, db, TelegramChat
 
 INFO_CLEANUP = {
     'NOTFOUND': "Your subscription to @{} was removed because that profile doesn't exist anymore. Maybe the account's name changed?",
