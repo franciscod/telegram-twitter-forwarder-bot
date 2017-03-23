@@ -6,6 +6,7 @@ from datetime import datetime
 from threading import Event
 
 import tweepy
+from telegram.error import TelegramError
 from telegram.ext import Job
 
 from models import TwitterUser, Tweet, Subscription, db
