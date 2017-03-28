@@ -24,7 +24,7 @@ def escape_markdown(text):
 
 def markdown_twitter_usernames(text):
     """Restore markdown escaped usernames and make them link to twitter"""
-    return re.sub(r'@([A-Za-z0-9_]+)',
+    return re.sub(r'@([A-Za-z0-9_\\]+)',
                   lambda s: '[@{username}](https://twitter.com/{username})'
                   .format(username=s.group(1).replace(r'\_', '_')),
                   text)
