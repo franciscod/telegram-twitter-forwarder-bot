@@ -275,7 +275,7 @@ def cmd_export_friends(bot, update, chat):
         return
     bot_auth = bot.tw.auth
     api = chat.tw_api(bot_auth.consumer_key, bot_auth.consumer_secret)
-    screen_names = [f.screen_name for f in api.friends()]
+    screen_names = [f.screen_name for f in tweepy.Cursor(api.friends).items()]
     bot.reply(update, "Use this to subscribe to all your Twitter friends:")
     bot.reply(update, "/sub {}".format(" ".join(screen_names)))
 
