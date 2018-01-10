@@ -20,16 +20,17 @@ So, big thanks to anyone who contributed on these projects! :D
 #### How do I run this?
 
 **The code is currently targeting Python 3.5**
-```
-# clone this thing
-# create your virtualenv, activate it, etc
-# virtualenv -p python3 venv
-# . venv/bin/activate
-pip install -r requirements.txt
-# fill secrets.env (see next readme section)
-source secrets.env
-python main.py
-```
+
+1. clone this thing
+2. fill secrets.env (see next readme section)
+3. create your virtualenv, activate it, etc, e.g.:
+    ```
+    virtualenv -p python3 venv
+    source venv/bin/activate
+    source secrets.env
+    ```
+4. `pip install -r requirements.txt`
+5. run it! `python main.py`
 
 #### secrets.env?? u wot m8?
 
