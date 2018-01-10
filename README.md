@@ -26,8 +26,8 @@ So, big thanks to anyone who contributed on these projects! :D
 3. create your virtualenv, activate it, etc, e.g.:
     ```
     virtualenv -p python3 venv
-    source venv/bin/activate
-    source secrets.env
+    . venv/bin/activate
+    . secrets.env
     ```
 4. `pip install -r requirements.txt`
 5. run it! `python main.py`
