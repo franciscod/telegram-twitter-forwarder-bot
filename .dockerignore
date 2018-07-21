@@ -1,0 +1,27 @@
+.git
+.idea
+.idea/
+__pycache__/
+.gitignore
+LICENSE
+VERSION
+README.md
+Changelog.md
+Makefile
+docker-compose.yml
+docs
+.ipynb_checkpoints/*
+/notebooks/*
+/unused/*
+Dockerfile
+.DS_Store
+env.*
+/devops/*
+# To prevent storing dev/temporary container data
+*.csv
+/tmp/
+
+# virtualenv
+.venv
+venv/
+ENV/
