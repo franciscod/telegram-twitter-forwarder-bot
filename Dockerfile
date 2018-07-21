@@ -1,5 +1,5 @@
 #Download base image python 3.5
-FROM registry.bale.ai:2443/python:3.5
+FROM python:3.5
 
 WORKDIR /bot
 
