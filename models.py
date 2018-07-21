@@ -91,7 +91,7 @@ for t in (TwitterUser, TelegramChat, Tweet, Subscription):
 
 
 # Migrate new fields. TODO: think of some better migration mechanism
-db = SqliteDatabase('peewee.db', timeout=10)
+db = SqliteDatabase('db/peewee.db', timeout=10)
 migrator = SqliteMigrator(db)
 operations = [
     migrator.add_column('tweet', 'photo_url', Tweet.photo_url),
