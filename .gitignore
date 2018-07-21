@@ -7,4 +7,3 @@ peewee.db
 .idea
 .idea/
 docker-compose.yml
-db/*
