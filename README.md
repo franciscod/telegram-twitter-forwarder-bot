@@ -27,7 +27,7 @@ docker run -d --name=twiiter_bot --restart=always \
     -e TELEGRAM_BOT_TOKEN=<isnert your telgram token> \
     -e TWITTER_CONSUMER_KEY=<insert your twitter consumer key here> \
     -e TWITTER_CONSUMER_SECRET=<insert your twitter consumer secret here> \
-    -v twitter-data:/bot/db/ \
+    -v twitter-data:/bot/ \
     salarn14/telegram-twitter-forwarder-bot
 ```
 
