@@ -57,3 +57,11 @@ docker run -d --name=twitter_bot --restart=always \
     -v twitter-data:/bot/ \
     salarn14/telegram-twitter-forwarder-bot
 ```
+
+## Using docker-compose
+
+set the vars in `docker-compose.yml` file and simply run this, again ENJOY!!
+
+```
+docker-compose up -d
+```
