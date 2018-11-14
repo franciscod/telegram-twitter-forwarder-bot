@@ -8,7 +8,5 @@ RUN pip install -r requirements.txt
 
 COPY . .
 
-RUN echo "Asia/Tehran" > /etc/timezone
-
 CMD ["python3.5", "main.py"]
 
