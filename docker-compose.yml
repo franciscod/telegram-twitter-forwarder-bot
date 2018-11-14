@@ -1,0 +1,17 @@
+version: '3.0'
+services:
+  twitter_bot:
+    container_name: twitter_bot
+    restart: always
+    image: salarn14/telegram-twitter-forwarder-bot
+    environment:
+      # fill these and uncomment
+      - TELEGRAM_BOT_TOKEN=
+      - TWITTER_CONSUMER_KEY=
+      - TWITTER_CONSUMER_SECRET=
+      # optionally
+      - TWITTER_ACCESS_TOKEN=
+      - TWITTER_ACCESS_TOKEN_SECRET=
+
+    volumes:
+      - twitter-data:/bot/
