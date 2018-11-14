@@ -3,7 +3,3 @@ env/
 
 __pycache__/
 peewee.db
-
-.idea
-.idea/
-docker-compose.yml
