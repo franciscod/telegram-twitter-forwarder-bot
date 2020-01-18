@@ -8,7 +8,7 @@ It was once hosted on Telegram as
 work anymore. There are a few other instances running around:
 - (add a Pull Request linking to your instance here!)
 
-#### Credit where credit is due
+## Credit where credit is due
 
 This is based on former work:
 - [python-telegram-bot](https://github.com/leandrotoledo/python-telegram-bot)
@@ -20,7 +20,7 @@ This is based on former work:
 
 So, big thanks to anyone who contributed on these projects! :D
 
-#### How do I run this?
+## How do I run this?
 
 **The code is currently targeting Python 3.5**
 
@@ -35,7 +35,7 @@ So, big thanks to anyone who contributed on these projects! :D
 4. `pip install -r requirements.txt`
 5. run it! `python main.py`
 
-#### secrets.env?? u wot m8?
+## secrets.env?? u wot m8?
 
 First, you'll need a Telegram Bot Token, you can get it via BotFather ([more info here](https://core.telegram.org/bots)).
 
@@ -49,7 +49,7 @@ Bear in mind that if you don't have added a mobile phone to your Twitter account
 
 Get a consumer key, consumer secret, access token and access token secret (the latter two are optional), fill in your `secrets.env`, source it, and then run the bot!
 
-#### Setting up cronjob
+## Setting up cronjob
 
 _contributed by @llg, thanks!_
 
