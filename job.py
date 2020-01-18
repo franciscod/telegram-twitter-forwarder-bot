@@ -62,14 +62,16 @@ class FetchAndSendTweetsJob(Job):
                         "Fetching latest tweet by {}".format(tw_user.screen_name))
                     tweets = bot.tw.user_timeline(
                         screen_name=tw_user.screen_name,
-                        count=1)
+                        count=1,
+                        tweet_mode='extended')
                 else:
                     # get the fresh tweets
                     self.logger.debug(
                         "Fetching new tweets from {}".format(tw_user.screen_name))
                     tweets = bot.tw.user_timeline(
                         screen_name=tw_user.screen_name,
-                        since_id=tw_user.last_tweet_id)
+                        since_id=tw_user.last_tweet_id,
+                        tweet_mode='extended')
                 updated_tw_users.append(tw_user)
             except tweepy.error.TweepError as e:
                 sc = e.response.status_code
@@ -92,13 +94,13 @@ class FetchAndSendTweetsJob(Job):
                 continue
 
             for tweet in tweets:
-                self.logger.debug("- Got tweet: {}".format(tweet.text))
+                self.logger.debug("- Got tweet: {}".format(tweet.full_text))
 
                 # Check if tweet contains media, else check if it contains a link to an image
                 extensions = ('.jpg', '.jpeg', '.png', '.gif')
                 pattern = '[(%s)]$' % ')('.join(extensions)
                 photo_url = ''
-                tweet_text = html.unescape(tweet.text)
+                tweet_text = html.unescape(tweet.full_text)
                 if 'media' in tweet.entities:
                     photo_url = tweet.entities['media'][0]['media_url_https']
                 else:
@@ -113,7 +115,7 @@ class FetchAndSendTweetsJob(Job):
                 for url_entity in tweet.entities['urls']:
                     expanded_url = url_entity['expanded_url']
                     indices = url_entity['indices']
-                    display_url = tweet.text[indices[0]:indices[1]]
+                    display_url = tweet.full_text[indices[0]:indices[1]]
                     tweet_text = tweet_text.replace(display_url, expanded_url)
 
                 tw_data = {
