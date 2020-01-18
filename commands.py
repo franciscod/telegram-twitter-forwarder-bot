@@ -43,10 +43,9 @@ Here's the commands:
 - /set\_timezone - set your [timezone name]({}) (for example Asia/Tokyo)
 - /source - info about source code
 - /help - view help text
-This bot is being worked on, so it may break sometimes. Contact @franciscod if you want {}
+This bot is free open source software, check /source if you want to host it!
 """.format(
-            TIMEZONE_LIST_URL,
-            Emoji.SMILING_FACE_WITH_OPEN_MOUTH_AND_SMILING_EYES),
+            TIMEZONE_LIST_URL),
                   disable_web_page_preview=True,
                   parse_mode=telegram.ParseMode.MARKDOWN)
 
