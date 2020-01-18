@@ -51,11 +51,10 @@ Get a consumer key, consumer secret, access token and access token secret (the l
 
 #### Setting up cronjob
 
+_contributed by @llg, thanks!_
+
 **Make sure crontab user have write access to venv directory**
 
-I recommend to create a symlink for easy check if process is running
-1. navigate to project folder
-2. `ln -sT ./telegram-twitter-forwarder-bot.py ./main.py`
-3. use run.sh script in cron:
-`* * * * * cd /any/path/telegram-twitter-forwarder-bot && ./run.sh >> /dev/null 2>&1`
-4. you can change time for checking to any you want
+1. use examples/cron-run.sh script in cron:
+`* * * * * cd /path/to/telegram-twitter-forwarder-bot && examples/cron-run.sh >> /dev/null 2>&1`
+2. you can change time for checking to any you want
