@@ -87,7 +87,8 @@ class TwitterForwarderBot(Bot):
     def get_tw_user(self, tw_username):
         try:
             tw_user = self.tw.get_user(tw_username)
-        except tweepy.error.TweepError:
+        except tweepy.error.TweepError as err:
+            self.logger.error(err)
             return None
 
         db_user, _created = TwitterUser.get_or_create(
