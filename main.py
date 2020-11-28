@@ -1,7 +1,6 @@
 import logging
 
 import tweepy
-from envparse import Env
 from telegram.ext import CommandHandler
 from telegram.ext import Updater
 from telegram.ext.messagehandler import MessageHandler, Filters
@@ -10,13 +9,16 @@ from bot import TwitterForwarderBot
 from commands import *
 from job import FetchAndSendTweetsJob
 
-env = Env(
-    TWITTER_CONSUMER_KEY=str,
-    TWITTER_CONSUMER_SECRET=str,
-    TWITTER_ACCESS_TOKEN=str,
-    TWITTER_ACCESS_TOKEN_SECRET=str,
-    TELEGRAM_BOT_TOKEN=str,
-)
+try:
+    from secrets import env
+except ImportError:
+    print("""
+    CONFIGURATION ERROR: missing secrets.py!
+
+    Make sure you have copied secrets.example.py into secrets.py and completed it!
+    See README.md for extra info.
+""")
+    exit(42)
 
 
 if __name__ == '__main__':
@@ -29,19 +31,25 @@ if __name__ == '__main__':
     logging.getLogger(FetchAndSendTweetsJob.__name__).setLevel(logging.DEBUG)
 
     # initialize Twitter API
-    auth = tweepy.OAuthHandler(env('TWITTER_CONSUMER_KEY'), env('TWITTER_CONSUMER_SECRET'))
+    try:
+        auth = tweepy.OAuthHandler(env['TWITTER_CONSUMER_KEY'], env['TWITTER_CONSUMER_SECRET'])
+    except KeyError as exc:
+        var = exc.args[0]
+        print(("The required configuration variable {} is missing. "
+              "Please review secrets.py.").format(var))
+        exit(123)
 
     try:
-        auth.set_access_token(env('TWITTER_ACCESS_TOKEN'), env('TWITTER_ACCESS_TOKEN_SECRET'))
-    except KeyError:
-        print("Either TWITTER_ACCESS_TOKEN or TWITTER_ACCESS_TOKEN_SECRET "
-              "environment variables are missing. "
-              "Tweepy will be initialized in 'app-only' mode")
+        auth.set_access_token(env['TWITTER_ACCESS_TOKEN'], env['TWITTER_ACCESS_TOKEN_SECRET'])
+    except KeyError as exc:
+        var = exc.args[0]
+        print(("The optional configuration variable {} is missing. "
+              "Tweepy will be initialized in 'app-only' mode.").format(var))
 
     twapi = tweepy.API(auth)
 
     # initialize telegram API
-    token = env('TELEGRAM_BOT_TOKEN')
+    token = env['TELEGRAM_BOT_TOKEN']
     updater = Updater(bot=TwitterForwarderBot(token, twapi))
     dispatcher = updater.dispatcher
 

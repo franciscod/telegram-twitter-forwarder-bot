@@ -6,8 +6,13 @@ from peewee import (Model, DateTimeField, ForeignKeyField, BigIntegerField, Char
 from playhouse.migrate import migrate, SqliteMigrator, SqliteDatabase
 from tweepy.auth import OAuthHandler
 
+db = SqliteDatabase('peewee.db', timeout=10)
 
-class TwitterUser(Model):
+class BaseModel(Model):
+    class Meta:
+        database = db
+
+class TwitterUser(BaseModel):
     screen_name = CharField(unique=True)
     known_at = DateTimeField(default=datetime.datetime.now)
     name = CharField()
@@ -25,7 +30,7 @@ class TwitterUser(Model):
         return self.tweets.order_by(Tweet.tw_id.desc()).first().tw_id
 
 
-class TelegramChat(Model):
+class TelegramChat(BaseModel):
     chat_id = IntegerField(unique=True)
     known_at = DateTimeField(default=datetime.datetime.now)
     tg_type = CharField()
@@ -54,7 +59,7 @@ class TelegramChat(Model):
         return tweepy.API(auth)
 
 
-class Subscription(Model):
+class Subscription(BaseModel):
     tg_chat = ForeignKeyField(TelegramChat, related_name="subscriptions")
     tw_user = ForeignKeyField(TwitterUser, related_name="subscriptions")
     known_at = DateTimeField(default=datetime.datetime.now)
@@ -68,7 +73,7 @@ class Subscription(Model):
         return Tweet.get(Tweet.tw_id == self.last_tweet_id)
 
 
-class Tweet(Model):
+class Tweet(BaseModel):
     tw_id = BigIntegerField(unique=True)
     known_at = DateTimeField(default=datetime.datetime.now)
     text = TextField()
@@ -91,7 +96,6 @@ for t in (TwitterUser, TelegramChat, Tweet, Subscription):
 
 
 # Migrate new fields. TODO: think of some better migration mechanism
-db = SqliteDatabase('peewee.db', timeout=10)
 migrator = SqliteMigrator(db)
 operations = [
     migrator.add_column('tweet', 'photo_url', Tweet.photo_url),

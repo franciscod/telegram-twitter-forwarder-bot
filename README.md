@@ -3,8 +3,8 @@
 
 Hello! This projects aims to make a [Telegram](https://telegram.org) bot that forwards [Twitter](https://twitter.com/) updates to people, groups, channels, or whatever Telegram comes up with!
 
-It was once hosted on Telegram as 
-[@TwitterForwarderBot](https://telegram.me/TwitterForwarderBot) which doesn't 
+It was once hosted on Telegram as
+[@TwitterForwarderBot](https://telegram.me/TwitterForwarderBot) which doesn't
 work anymore. There are a few other instances running around:
 - (add a Pull Request linking to your instance here!)
 
@@ -22,20 +22,21 @@ So, big thanks to anyone who contributed on these projects! :D
 
 ## How do I run this?
 
-**The code is currently targeting Python 3.5**
-
 1. clone this thing
-2. fill secrets.env (see next readme section)
-3. create your virtualenv, activate it, etc, e.g.:
+2. fill secrets.py (see next readme section)
+3. (optional) create your virtualenv, activate it, etc, e.g.:
     ```
     virtualenv -p python3 venv
     . venv/bin/activate
-    . secrets.env
     ```
 4. `pip install -r requirements.txt`
 5. run it! `python main.py`
 
-## secrets.env?? u wot m8?
+## secrets.py?? what is that?
+
+This bot requires a few tokens that identify it both on Twitter and Telegram. This configuration should be present on the `secrets.py` file.
+
+There's a skeleton of that on `example-secrets.py`, start by copying it to `secrets.py`. The second one is the one you should change.
 
 First, you'll need a Telegram Bot Token, you can get it via BotFather ([more info here](https://core.telegram.org/bots)).
 
@@ -47,7 +48,7 @@ Bear in mind that if you don't have added a mobile phone to your Twitter account
 
 >You must add your mobile phone to your Twitter profile before creating an application. Please read https://support.twitter.com/articles/110250-adding-your-mobile-number-to-your-account-via-web for more information.
 
-Get a consumer key, consumer secret, access token and access token secret (the latter two are optional), fill in your `secrets.env`, source it, and then run the bot!
+Get a consumer key, consumer secret, access token and access token secret (the latter two are optional), fill in your `secrets.py`, source it, and then run the bot!
 
 ## Setting up cronjob
 
