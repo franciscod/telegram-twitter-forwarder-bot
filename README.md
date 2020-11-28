@@ -14,7 +14,6 @@ This is based on former work:
 - [python-telegram-bot](https://github.com/leandrotoledo/python-telegram-bot)
 - [tweepy](https://github.com/tweepy/tweepy)
 - [peewee](https://github.com/coleifer/peewee)
-- [envparse](https://github.com/rconradharris/envparse)
 - also, python, pip, the internets, and so on
 
 
