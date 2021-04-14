@@ -1,0 +1,12 @@
+version: "3.9"
+services:
+  bot:
+    build: .
+    volumes:
+      - ./peewee.db:/usr/src/app/peewee.db
+    environment:
+      - TELEGRAM_BOT_TOKEN=
+      - TWITTER_ACCESS_TOKEN=
+      - TWITTER_ACCESS_TOKEN_SECRET=
+      - TWITTER_CONSUMER_SECRET=
+      - TWITTER_CONSUMER_KEY=
