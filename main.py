@@ -1,4 +1,5 @@
 import logging
+from os import environ
 
 import tweepy
 from telegram.ext import CommandHandler
@@ -9,17 +10,39 @@ from bot import TwitterForwarderBot
 from commands import *
 from job import FetchAndSendTweetsJob
 
-try:
-    from secrets import env
-except ImportError:
-    print("""
-    CONFIGURATION ERROR: missing secrets.py!
+if "TELEGRAM_BOT_TOKEN" in environ:
+    # The project is using environment vars, so load from those
+    if "TWITTER_ACCESS_TOKEN" in environ:
+        # The project explicitly has twitter access token, so use that in the dict
+        env = dict(
+            TELEGRAM_BOT_TOKEN=environ.get("TELEGRAM_BOT_TOKEN"),
+            TWITTER_CONSUMER_KEY=environ.get("TWITTER_CONSUMER_KEY"),
+            TWITTER_CONSUMER_SECRET=environ.get("TWITTER_CONSUMER_SECRET"),
 
-    Make sure you have copied secrets.example.py into secrets.py and completed it!
-    See README.md for extra info.
-""")
-    exit(42)
+            # Optionals
+            TWITTER_ACCESS_TOKEN=environ.get("TWITTER_ACCESS_TOKEN"),
+            TWITTER_ACCESS_TOKEN_SECRET=environ.get("TWITTER_ACCESS_TOKEN_SECRET"),
+        )
+    else:
+        # The project doesn't have an access token, so don't add the keys so the checks below pass
+        env = dict(
+            TELEGRAM_BOT_TOKEN=environ.get("TELEGRAM_BOT_TOKEN"),
+            TWITTER_CONSUMER_KEY=environ.get("TWITTER_CONSUMER_KEY"),
+            TWITTER_CONSUMER_SECRET=environ.get("TWITTER_CONSUMER_SECRET"),
+        )
+else:
+    # The project isn't using environment vars, so we should use the secrets file instead
+    try:
+        from secrets import env
+    except ImportError:
 
+        print("""
+        CONFIGURATION ERROR: missing secrets.py!
+    
+        Make sure you have copied secrets.example.py into secrets.py and completed it!
+        See README.md for extra info.
+    """)
+        exit(42)
 
 if __name__ == '__main__':
 
@@ -36,7 +59,7 @@ if __name__ == '__main__':
     except KeyError as exc:
         var = exc.args[0]
         print(("The required configuration variable {} is missing. "
-              "Please review secrets.py.").format(var))
+               "Please review secrets.py.").format(var))
         exit(123)
 
     try:
@@ -44,7 +67,7 @@ if __name__ == '__main__':
     except KeyError as exc:
         var = exc.args[0]
         print(("The optional configuration variable {} is missing. "
-              "Tweepy will be initialized in 'app-only' mode.").format(var))
+               "Tweepy will be initialized in 'app-only' mode.").format(var))
 
     twapi = tweepy.API(auth)
 
