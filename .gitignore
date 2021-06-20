@@ -1,5 +1,6 @@
 venv/
 env/
+.idea/
 
 __pycache__/
 peewee.db
