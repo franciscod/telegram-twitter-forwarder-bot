@@ -2,6 +2,7 @@ version: "3.9"
 services:
   bot:
     build: .
+    restart: always
     volumes:
       - ./peewee.db:/usr/src/app/peewee.db
     environment:
